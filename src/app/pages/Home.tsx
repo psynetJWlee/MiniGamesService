@@ -5,36 +5,76 @@ import { useNavigate } from 'react-router';
 
 const GAMES = [
   {
-    id: 'jigsaw',
-    title: '동물 퍼즐',
-    description: '귀여운 동물 친구들을 퍼즐로 맞춰보아요! 3x3 퍼즐이라 누구나 할 수 있어요.',
-    imageUrl: 'https://images.unsplash.com/photo-1730804518415-75297e8d2a41?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwamlnc2F3JTIwcHV6emxlJTIwcGllY2VzJTIwYmFja2dyb3VuZHxlbnwxfHx8fDE3ODIxOTUyOTZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    color: '#FF9B9B', // Soft Red
-    icon: '🧩',
+    id: 'feeding',
+    title: '동물 먹이 주기',
+    description: '배고픈 동물 친구들에게 맛있는 음식을 드래그해서 나눠주세요!',
+    imageUrl: 'https://images.unsplash.com/photo-1706533078712-abfd34feb160?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwcmFiYml0JTIwZWF0aW5nJTIwY2Fycm90JTIwaWxsdXN0cmF0aW9ufGVufDF8fHx8MTc4MjE5NTk1MHww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#FF9B9B',
+    icon: '🥕',
   },
   {
-    id: 'animals',
-    title: '누굴까요?',
-    description: '울음소리를 듣거나 모습을 보고 어떤 동물인지 이름을 맞춰보는 게임이에요.',
-    imageUrl: 'https://images.unsplash.com/photo-1597802109425-17ffb0349d8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwY29sb3JmdWwlMjBpbGx1c3RyYXRpb24lMjBmb3IlMjBraWRzJTIwYW5pbWFsfGVufDF8fHx8MTc4MjE5NTI5Nnww&ixlib=rb-4.1.0&q=80&w=1080',
-    color: '#7BC9FF', // Soft Blue
-    icon: '🦁',
+    id: 'balloons',
+    title: '풍선 터뜨리기',
+    description: '숫자와 글자가 적힌 풍선을 팡팡! 터뜨리며 재미있게 배워보아요.',
+    imageUrl: 'https://images.unsplash.com/photo-1550850395-c17a8e90ad0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMGJhbGxvb25zJTIwZmxvYXRpbmclMjBmb3IlMjBraWRzfGVufDF8fHx8MTc4MjE5NTk1MHww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#7BC9FF',
+    icon: '🎈',
   },
   {
-    id: 'flags',
-    title: '나라 국기 맞추기',
-    description: '전 세계 여러 나라의 예쁜 국기들을 배워보아요! 어떤 나라 국기일까요?',
-    imageUrl: 'https://images.unsplash.com/photo-1592487501226-7ed5e5dc80f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMHdvcmxkJTIwZmxhZ3MlMjBjb2xsYWdlfGVufDF8fHx8MTc4MjE5NTI5Nnww&ixlib=rb-4.1.0&q=80&w=1080',
-    color: '#A1EEBD', // Soft Green
-    icon: '🚩',
+    id: 'matching',
+    title: '같은 그림 찾기',
+    description: '어디에 숨었을까? 똑같은 그림 카드를 두 장씩 찾아보세요.',
+    imageUrl: 'https://images.unsplash.com/photo-1733297190207-06b9190381d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwbWVtb3J5JTIwbWF0Y2glMjBjYXJkJTIwZ2FtZSUyMGZvciUyMGNoaWxkcmVufGVufDF8fHx8MTc4MjE5NTk1MHww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#A1EEBD',
+    icon: '🃏',
+  },
+  {
+    id: 'monsters',
+    title: '색깔 몬스터 잡기',
+    description: '무지개 색깔 몬스터들이 나타났어요! 빨간 몬스터는 어디 있을까요?',
+    imageUrl: 'https://images.unsplash.com/photo-1593538573197-4e3ee8a864d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMGN1dGUlMjBtb25zdGVycyUyMGlsbHVzdHJhdGlvbnxlbnwxfHx8fDE3ODIxOTU5NTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#F9D949',
+    icon: '👾',
+  },
+  {
+    id: 'sounds',
+    title: '동물 소리 맞추기',
+    description: '멍멍! 냐옹! 소리를 듣고 어떤 동물 친구인지 맞춰보아요.',
+    imageUrl: 'https://images.unsplash.com/photo-1515532389667-6373451c5053?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwcHVwcHklMjBiYXJraW5nJTIwaWxsdXN0cmF0aW9ufGVufDF8fHx8MTc4MjE5NTk1MHww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#FFB84C',
+    icon: '🔊',
   },
   {
     id: 'maze',
-    title: '미로 탈출',
-    description: '복잡한 길을 따라가서 출구를 찾아보아요. 길을 잃지 않게 조심하세요!',
+    title: '길 찾기 미로',
+    description: '요리조리 미로를 탈출해서 맛있는 쿠키를 먹으러 가볼까요?',
     imageUrl: 'https://images.unsplash.com/photo-1752154344437-44bd7480e8ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaW1wbGUlMjBtYXplJTIwaWxsdXN0cmF0aW9uJTIwZm9yJTIwY2hpbGRyZW58ZW58MXx8fHwxNzgyMTk1Mjk2fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    color: '#F9D949', // Soft Yellow
-    icon: '🌀',
+    color: '#CDFCF6',
+    icon: '🍪',
+  },
+  {
+    id: 'hidden',
+    title: '숨은 그림 찾기',
+    description: '커다란 그림 속에 숨겨진 보물들을 돋보기로 찾아보세요!',
+    imageUrl: 'https://images.unsplash.com/photo-1579478575321-5addbfd43db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaWRkZW4lMjBvYmplY3RzJTIwcHV6emxlJTIwZm9yJTIwa2lkcyUyMGlsbHVzdHJhdGlvbnxlbnwxfHx8fDE3ODIxOTU5NTF8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#D09CFA',
+    icon: '🔍',
+  },
+  {
+    id: 'dino',
+    title: '공룡 점프 게임',
+    description: '용감한 공룡이 장애물을 넘어가요! 화면을 눌러 점프해보세요.',
+    imageUrl: 'https://images.unsplash.com/photo-1725575268896-fa1c209ded5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwZGlub3NhdXIlMjBqdW1waW5nJTIwaWxsdXN0cmF0aW9ufGVufDF8fHx8MTc4MjE5NTk1MXww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#98EECC',
+    icon: '🦖',
+  },
+  {
+    id: 'hospital',
+    title: '동물 병원 놀이',
+    description: '아픈 동물 친구들을 돌봐주세요. 밴드도 붙이고 열도 재볼까요?',
+    imageUrl: 'https://images.unsplash.com/photo-1729856984663-5a32e8cc8f75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwYW5pbWFsJTIwaG9zcGl0YWwlMjBkb2N0b3IlMjBnYW1lJTIwaWxsdXN0cmF0aW9ufGVufDF8fHx8MTc4MjE5NTk1MXww&ixlib=rb-4.1.0&q=80&w=1080',
+    color: '#B4E4FF',
+    icon: '🏥',
   },
 ];
 
@@ -63,8 +103,7 @@ export default function Home() {
             <GameCard
               {...game}
               onClick={() => {
-                // For now, just show an alert or navigate to a placeholder
-                alert(`${game.title} 게임을 곧 시작할게요!`);
+                navigate(`/game/${game.id}`);
               }}
             />
           </motion.div>

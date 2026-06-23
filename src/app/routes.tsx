@@ -1,9 +1,17 @@
 import { createBrowserRouter } from "react-router";
 import Home from "./pages/Home";
+import FeedingGame from "./pages/FeedingGame";
+import BalloonGame from "./pages/BalloonGame";
+import MatchingGame from "./pages/MatchingGame";
+import MonsterGame from "./pages/MonsterGame";
+import SoundGame from "./pages/SoundGame";
+import MazeGame from "./pages/MazeGame";
+import HiddenGame from "./pages/HiddenGame";
+import DinoGame from "./pages/DinoGame";
+import HospitalGame from "./pages/HospitalGame";
 import { Layout } from "./components/Layout";
 import React from "react";
 
-// Placeholder for NotFound
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
     <span className="text-6xl mb-4">😮</span>
@@ -26,6 +34,15 @@ export const router = createBrowserRouter([
       </Layout>
     ),
   },
+  { path: "/game/feeding", element: <FeedingGame /> },
+  { path: "/game/balloons", element: <BalloonGame /> },
+  { path: "/game/matching", element: <MatchingGame /> },
+  { path: "/game/monsters", element: <MonsterGame /> },
+  { path: "/game/sounds", element: <SoundGame /> },
+  { path: "/game/maze", element: <MazeGame /> },
+  { path: "/game/hidden", element: <HiddenGame /> },
+  { path: "/game/dino", element: <DinoGame /> },
+  { path: "/game/hospital", element: <HospitalGame /> },
   {
     path: "*",
     element: (
