@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { GameCard } from '../components/GameCard';
 import { useNavigate } from 'react-router';
 import { getGameRecord, getTotalStars, type GameId } from '../lib/storage';
+import { usePlayer, PLAYERS } from '../lib/player';
 
 const GAMES = [
   {
@@ -80,6 +81,7 @@ const GAMES = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { player, setPlayer } = usePlayer();
   // Read once per mount — the home screen is re-mounted when returning from a game.
   const totalStars = getTotalStars();
 
@@ -90,8 +92,36 @@ export default function Home() {
         animate={{ y: 0, opacity: 1 }}
         className="mb-12 text-center"
       >
-        <h2 className="text-3xl font-title text-gray-700 mb-2">어떤 놀이를 시작해볼까?</h2>
-        <p className="text-xl font-body text-gray-500 mb-5">가온이랑 시온이랑 재미있게 놀아보아요!</p>
+        {player ? (
+          <h2 className="text-3xl font-title text-gray-700 mb-2">{player}야, 어떤 놀이를 시작해볼까?</h2>
+        ) : (
+          <h2 className="text-3xl font-title text-gray-700 mb-2">누구랑 놀까?</h2>
+        )}
+        <p className="text-xl font-body text-gray-500 mb-5">
+          {player ? `${player}랑 재미있게 놀아보아요!` : '친구를 골라봐!'}
+        </p>
+
+        {/* Player picker — selecting a name personalizes the whole app. */}
+        <div className="flex justify-center gap-4 mb-5">
+          {PLAYERS.map((name) => {
+            const selected = player === name;
+            return (
+              <button
+                key={name}
+                onClick={() => setPlayer(name)}
+                className={`px-7 py-3 rounded-full font-title text-2xl shadow-md border-4 transition-all active:scale-95 ${
+                  selected
+                    ? 'bg-orange-400 text-white border-orange-400 scale-105'
+                    : 'bg-white text-orange-500 border-orange-200 hover:scale-105'
+                }`}
+              >
+                {selected && '🧒 '}
+                {name}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full shadow-md border-2 border-yellow-200">
           <span className="text-2xl">⭐</span>
           <span className="text-2xl font-title text-orange-500">모은 별 {totalStars}개</span>

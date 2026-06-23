@@ -101,11 +101,13 @@ export default function DinoGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
-  // Keyboard jump.
+  // Keyboard jump. Ignore auto-repeat (e.repeat) so HOLDING the key can't
+  // bunny-hop forever — one press = one jump, then the dino must land.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
+        if (e.repeat) return;
         jump();
       }
     };
@@ -129,7 +131,7 @@ export default function DinoGame() {
       showBlobs={false}
       contentClassName="relative z-10 h-screen"
     >
-      <div className="absolute inset-0 select-none" onClick={jump}>
+      <div className="absolute inset-0 select-none" onPointerDown={jump}>
         {/* Drifting clouds for a bit of parallax depth. */}
         {[15, 45, 75].map((top, i) => (
           <motion.div
@@ -153,7 +155,8 @@ export default function DinoGame() {
             className="absolute text-7xl md:text-8xl"
             style={{ left: `${DINO_X}%`, bottom: 0, transform: 'translateX(-50%)' }}
           >
-            🦖
+            {/* Flip so the dino faces right, toward the incoming obstacles. */}
+            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>🦖</span>
           </motion.div>
 
           {/* Obstacles */}

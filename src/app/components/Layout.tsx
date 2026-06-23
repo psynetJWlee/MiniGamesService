@@ -1,12 +1,18 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Settings, Info } from 'lucide-react';
+import { Sticker } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { usePlayer } from '../lib/player';
+import { getProgress } from '../lib/stickers';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { player } = usePlayer();
+  const navigate = useNavigate();
+  const progress = player ? getProgress(player) : null;
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-kids">
       {/* Playful background blobs */}
@@ -25,17 +31,24 @@ export function Layout({ children }: LayoutProps) {
           <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3">
             <span className="text-2xl">🧸</span>
           </div>
-          <h1 className="text-4xl font-title text-orange-600 drop-shadow-sm">가온이랑 시온이랑 놀자</h1>
+          <h1 className="text-4xl font-title text-orange-600 drop-shadow-sm">
+            {player ? `${player}랑 놀자` : '가온이랑 시온이랑 놀자'}
+          </h1>
         </motion.div>
 
-        <div className="flex gap-4">
-          <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md text-orange-500 hover:scale-110 transition-transform">
-            <Info size={24} />
-          </button>
-          <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md text-orange-500 hover:scale-110 transition-transform">
-            <Settings size={24} />
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/stickers')}
+          aria-label="내 스티커"
+          className="flex items-center gap-2 bg-white rounded-full pl-4 pr-5 py-2.5 shadow-md text-orange-500 hover:scale-105 transition-transform"
+        >
+          <Sticker size={28} />
+          <span className="font-title text-xl">스티커</span>
+          {progress && (
+            <span className="ml-1 bg-orange-100 text-orange-600 font-title text-base px-2.5 py-0.5 rounded-full">
+              {progress.collected}/{progress.total}
+            </span>
+          )}
+        </button>
       </header>
 
       <main className="relative z-10 px-6 pb-12">

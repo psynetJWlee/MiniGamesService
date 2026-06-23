@@ -98,32 +98,42 @@ export default function MazeGame() {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [visited, setVisited] = useState<Set<string>>(new Set(['0,0']));
   const [moves, setMoves] = useState(0);
-  const [won, setWon] = useState(false);
   const [cleared, setCleared] = useState(false);
   const [earnedStars, setEarnedStars] = useState(0);
 
   const n = maze.grid.length;
 
+  // Refs mirror the live position/moves/win so drag steps read the latest
+  // values synchronously (many pointer events can fire before a re-render).
+  const posRef = useRef(pos);
+  const movesRef = useRef(0);
+  const wonRef = useRef(false);
+
   const startRound = (cfg: Level) => {
     setMaze(buildMaze(cfg));
+    posRef.current = { x: 0, y: 0 };
+    movesRef.current = 0;
+    wonRef.current = false;
     setPos({ x: 0, y: 0 });
     setVisited(new Set(['0,0']));
     setMoves(0);
-    setWon(false);
     setCleared(false);
   };
 
   const move = (dx: number, dy: number) => {
-    if (won) return;
-    const nx = pos.x + dx;
-    const ny = pos.y + dy;
+    if (wonRef.current) return;
+    const cur = posRef.current;
+    const nx = cur.x + dx;
+    const ny = cur.y + dy;
     if (nx < 0 || nx >= n || ny < 0 || ny >= n || maze.grid[ny][nx] === 1) return;
+    posRef.current = { x: nx, y: ny };
     setPos({ x: nx, y: ny });
     setVisited((v) => new Set(v).add(`${nx},${ny}`));
-    const newMoves = moves + 1;
+    const newMoves = movesRef.current + 1;
+    movesRef.current = newMoves;
     setMoves(newMoves);
     if (maze.grid[ny][nx] === 2) {
-      setWon(true);
+      wonRef.current = true;
       playCorrect();
       burstBig();
       const stars = starsForLower(newMoves, { three: maze.optimal + 2, two: maze.optimal + 8 });
@@ -152,21 +162,51 @@ export default function MazeGame() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  // Swipe gestures on the board.
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStart.current = { x: t.clientX, y: t.clientY };
+  // Drag-to-move: the runner follows the pointer (mouse or finger) through the
+  // corridors, one step at a time. Direction buttons still work too.
+  const boardRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const cellFromPointer = (clientX: number, clientY: number) => {
+    const el = boardRef.current;
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const gx = Math.floor(((clientX - r.left) / r.width) * n);
+    const gy = Math.floor(((clientY - r.top) / r.height) * n);
+    if (gx < 0 || gx >= n || gy < 0 || gy >= n) return null;
+    return { x: gx, y: gy };
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart.current) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStart.current.x;
-    const dy = t.clientY - touchStart.current.y;
-    touchStart.current = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 1 : -1, 0);
-    else move(0, dy > 0 ? 1 : -1);
+
+  // One step toward the target cell — greedy on the bigger axis, falling back
+  // to the other axis if a wall blocks it (so dragging can turn corners).
+  const stepToward = (target: { x: number; y: number }) => {
+    const cur = posRef.current;
+    const dx = target.x - cur.x;
+    const dy = target.y - cur.y;
+    if (dx === 0 && dy === 0) return;
+    const before = posRef.current;
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      if (dx !== 0) move(Math.sign(dx), 0);
+      if (posRef.current === before && dy !== 0) move(0, Math.sign(dy));
+    } else {
+      if (dy !== 0) move(0, Math.sign(dy));
+      if (posRef.current === before && dx !== 0) move(Math.sign(dx), 0);
+    }
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragging.current = true;
+    boardRef.current?.setPointerCapture?.(e.pointerId);
+    const c = cellFromPointer(e.clientX, e.clientY);
+    if (c) stepToward(c);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const c = cellFromPointer(e.clientX, e.clientY);
+    if (c) stepToward(c);
+  };
+  const endDrag = () => {
+    dragging.current = false;
   };
 
   const goNextLevel = () => {
@@ -189,9 +229,12 @@ export default function MazeGame() {
       contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-2xl mx-auto"
     >
       <div
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square grid gap-1.5 mb-8 border-8 border-yellow-100 touch-none"
+        ref={boardRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square grid gap-1.5 mb-8 border-8 border-yellow-100 touch-none cursor-pointer select-none"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         {maze.grid.map((row, y) =>

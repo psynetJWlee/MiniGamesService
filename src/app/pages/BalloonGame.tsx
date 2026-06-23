@@ -66,6 +66,49 @@ function pickTarget(level: Level): number {
   return Math.floor(Math.random() * level.max) + 1;
 }
 
+// Glossy, 3D-looking balloon — radial highlight, soft inner shadow, a little
+// knot, and a curved string. Replaces the old flat solid oval.
+function Balloon({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="relative flex flex-col items-center transition-transform group-active:scale-90">
+      <div
+        className="relative flex items-center justify-center w-24 h-28 md:w-28 md:h-32"
+        style={{
+          backgroundColor: color,
+          borderRadius: '48% 48% 48% 48% / 42% 42% 58% 58%',
+          backgroundImage: 'radial-gradient(circle at 32% 26%, rgba(255,255,255,0.65), rgba(255,255,255,0) 45%)',
+          boxShadow: 'inset -6px -9px 16px rgba(0,0,0,0.18), 0 8px 14px rgba(0,0,0,0.18)',
+        }}
+      >
+        {/* specular shine */}
+        <span className="absolute top-3 left-4 w-3.5 h-5 rotate-[18deg] rounded-full bg-white/60 blur-[1px]" />
+        <span
+          className={`relative font-title text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] ${
+            label.length > 2 ? 'text-xl md:text-2xl' : 'text-3xl md:text-4xl'
+          }`}
+        >
+          {label}
+        </span>
+        {/* knot */}
+        <span
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2"
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: '7px solid transparent',
+            borderRight: '7px solid transparent',
+            borderTop: `11px solid ${color}`,
+          }}
+        />
+      </div>
+      {/* curved string */}
+      <svg width="22" height="56" viewBox="0 0 22 56" fill="none" className="-mt-1">
+        <path d="M11 0 Q3 15 11 28 Q19 41 11 56" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
+}
+
 export default function BalloonGame() {
   const navigate = useNavigate();
   const wrong = useWrongFeedback();
@@ -156,10 +199,10 @@ export default function BalloonGame() {
           initial={{ scale: 0.8 }}
           animate={{ scale: [1, 1.12, 1] }}
           transition={{ duration: 0.5 }}
-          className="bg-white/90 backdrop-blur-md px-10 py-3 rounded-[30px] shadow-xl border-4 border-blue-200 text-center"
+          className="bg-white/90 backdrop-blur-md px-12 py-4 rounded-[30px] shadow-xl border-4 border-blue-200 text-center"
         >
-          <span className="text-3xl font-title text-blue-600">
-            {config.mode === 'add' ? `더해서 ${target}!` : `숫자 ${target}을 찾아요!`}
+          <span className="text-[50px] leading-tight font-title text-blue-600 whitespace-nowrap">
+            {config.mode === 'add' ? `더해서 ${target} 만들기` : `찾아야 하는 숫자 : ${target}`}
           </span>
         </motion.div>
       </div>
@@ -174,13 +217,7 @@ export default function BalloonGame() {
           onClick={() => handlePop(balloon)}
           className="absolute left-0 top-0 cursor-pointer group"
         >
-          <div
-            className="w-24 h-32 md:w-28 md:h-36 rounded-[50%] relative shadow-lg flex items-center justify-center transition-transform group-active:scale-90"
-            style={{ backgroundColor: balloon.color }}
-          >
-            <span className="text-3xl md:text-4xl font-title text-white drop-shadow-md">{balloon.label}</span>
-            <div className="absolute bottom-[-20px] left-1/2 w-1 h-20 bg-gray-300 -translate-x-1/2" />
-          </div>
+          <Balloon color={balloon.color} label={balloon.label} />
         </motion.button>
       ))}
 

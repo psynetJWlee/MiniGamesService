@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { RotateCcw, Home, ArrowRight } from 'lucide-react';
 import { StarRating } from './StarRating';
 import { burstBig, starRain } from '../lib/celebrate';
 import { playFanfare, playLevelUp } from '../lib/sound';
+import { usePlayer } from '../lib/player';
+import { awardStickers, type AwardedSticker } from '../lib/stickers';
 
 interface ResultModalProps {
   open: boolean;
@@ -35,6 +37,9 @@ export function ResultModal({
   onRetry,
   onHome,
 }: ResultModalProps) {
+  const { player } = usePlayer();
+  const [awarded, setAwarded] = useState<AwardedSticker[]>([]);
+
   useEffect(() => {
     if (!open) return;
     if (stars >= 3) {
@@ -44,6 +49,9 @@ export function ResultModal({
       burstBig();
       playLevelUp();
     }
+    // Award stickers for this clear (per player). Skip if no player chosen.
+    setAwarded(player ? awardStickers(player, stars) : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, stars]);
 
   // Rendered with a plain conditional (no AnimatePresence) so closing instantly
@@ -66,8 +74,36 @@ export function ResultModal({
             <div className="mb-6">
               <StarRating value={stars} size={56} animate />
             </div>
-            <h2 className="text-4xl md:text-5xl font-title text-orange-600 mb-3">{title}</h2>
-            {subtitle && <p className="text-xl md:text-2xl font-body text-gray-500 mb-6">{subtitle}</p>}
+            <h2 className="text-4xl md:text-5xl font-title text-orange-600 mb-2">{title}</h2>
+            {player && (
+              <p className="text-2xl md:text-3xl font-title text-pink-500 mb-2">{player}, 정말 멋져요! 🎉</p>
+            )}
+            {subtitle && <p className="text-lg md:text-xl font-body text-gray-500 mb-4">{subtitle}</p>}
+
+            {/* Stickers earned this clear */}
+            {awarded.length > 0 && (
+              <div className="bg-yellow-50 rounded-3xl p-4 mb-5 border-2 border-yellow-200">
+                <p className="font-title text-lg text-orange-500 mb-2">스티커 획득! 🏷️</p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {awarded.map((s, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, rotate: -30 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.2 + i * 0.15, type: 'spring', stiffness: 300, damping: 12 }}
+                      className="relative w-14 h-14 bg-white rounded-2xl border-2 border-orange-100 shadow flex items-center justify-center text-3xl"
+                    >
+                      {s.emoji}
+                      {s.isNew && (
+                        <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-[10px] font-title px-1.5 py-0.5 rounded-full shadow">
+                          NEW
+                        </span>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-3 mt-4">
               {hasNextLevel && (

@@ -134,11 +134,11 @@ function FoodItem({ food, isUsed }: { food: Food; isUsed: boolean }) {
       ref={drag as never}
       whileHover={!isUsed ? { scale: 1.1, rotate: 5 } : {}}
       whileTap={!isUsed ? { scale: 0.9 } : {}}
-      className={`relative w-20 h-20 md:w-28 md:h-28 bg-white rounded-3xl shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-opacity ${
+      className={`relative w-20 h-20 md:w-28 md:h-28 bg-white rounded-3xl shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-opacity ${
         isDragging ? 'opacity-50' : isUsed ? 'opacity-30' : 'opacity-100'
       }`}
     >
-      <span className="text-5xl md:text-6xl">{food.emoji}</span>
+      <span className="text-5xl md:text-6xl select-none">{food.emoji}</span>
       {isUsed && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-full h-1 bg-red-400/50 rotate-45 absolute" />
@@ -158,7 +158,7 @@ function FoodDragLayer() {
   }));
   if (!isDragging || !offset || !item?.emoji) return null;
   return (
-    <div className="pointer-events-none fixed inset-0 z-[70]">
+    <div className="pointer-events-none fixed inset-0 z-[70] select-none">
       <div
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
         className="w-20 h-20 md:w-28 md:h-28 bg-white rounded-3xl shadow-2xl flex items-center justify-center"
@@ -228,7 +228,7 @@ export default function FeedingGame() {
         levelCount={LEVELS.length}
         status={status}
         onReset={() => startRound(config)}
-        contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-6xl mx-auto flex flex-col gap-8"
+        contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-6xl mx-auto flex flex-col gap-8 select-none"
       >
         <FoodDragLayer />
         {wrong.overlay}

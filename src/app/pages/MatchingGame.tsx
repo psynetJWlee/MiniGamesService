@@ -131,35 +131,29 @@ export default function MatchingGame() {
           const isUp = flipped.includes(card.id) || solved.includes(card.id);
           const isSolved = solved.includes(card.id);
           return (
-            <button
+            <motion.button
               key={card.id}
               onClick={() => handleCardClick(card.id)}
-              className="aspect-square"
-              style={{ perspective: 1000 }}
+              whileHover={!isUp ? { scale: 1.05 } : {}}
+              whileTap={!isUp ? { scale: 0.95 } : {}}
               aria-label={isUp ? card.emoji : '뒤집힌 카드'}
+              className={`aspect-square rounded-3xl shadow-xl flex items-center justify-center text-5xl md:text-7xl transition-colors duration-300 ${
+                isUp ? 'bg-white' : 'bg-orange-400'
+              } ${isSolved ? 'ring-4 ring-green-400' : ''}`}
             >
-              <motion.div
-                animate={{ rotateY: isUp ? 180 : 0 }}
-                transition={{ duration: 0.4 }}
-                style={{ transformStyle: 'preserve-3d' }}
-                className={`relative w-full h-full rounded-3xl shadow-xl transition-opacity ${isSolved ? 'opacity-60' : ''}`}
+              {/* Content is rendered directly from state (no 3D backface, which
+                  silently fails in some browsers) — a small flip-in plays when
+                  the face changes. Solved cards keep showing their picture. */}
+              <motion.span
+                key={isUp ? 'up' : 'down'}
+                initial={{ rotateY: 90, scale: 0.5 }}
+                animate={{ rotateY: 0, scale: 1 }}
+                transition={{ duration: 0.25 }}
+                className={isUp ? '' : 'font-title text-white/90'}
               >
-                {/* Face down */}
-                <div
-                  className="absolute inset-0 rounded-3xl bg-orange-400 flex items-center justify-center text-5xl md:text-6xl text-white"
-                  style={{ backfaceVisibility: 'hidden' }}
-                >
-                  ?
-                </div>
-                {/* Face up */}
-                <div
-                  className="absolute inset-0 rounded-3xl bg-white flex items-center justify-center text-5xl md:text-7xl"
-                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-                >
-                  {card.emoji}
-                </div>
-              </motion.div>
-            </button>
+                {isUp ? card.emoji : '?'}
+              </motion.span>
+            </motion.button>
           );
         })}
       </div>

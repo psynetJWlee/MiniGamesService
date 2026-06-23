@@ -161,10 +161,20 @@ export default function HiddenGame() {
                 top: `${item.y}%`,
                 width: config.hit,
                 height: config.hit,
-                opacity: isFound ? 1 : 0.01,
               }}
             >
-              <span className={`text-4xl ${isFound ? 'animate-bounce' : ''}`}>{item.emoji}</span>
+              {/* Unfound items are faintly visible (a real "hidden picture"),
+                  not invisible — with a soft white halo so they're spottable
+                  against the busy photo. */}
+              <span
+                className={`text-4xl ${isFound ? 'animate-bounce' : ''}`}
+                style={{
+                  opacity: isFound ? 1 : 0.5,
+                  filter: isFound ? 'none' : 'drop-shadow(0 0 3px rgba(255,255,255,0.9))',
+                }}
+              >
+                {item.emoji}
+              </span>
               {isFound && <div className="absolute inset-0 border-4 border-green-500 rounded-full" />}
               {/* Hint pulse for unfound items */}
               {!isFound && hintActive && (

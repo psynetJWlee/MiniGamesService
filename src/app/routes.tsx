@@ -9,6 +9,7 @@ import MazeGame from "./pages/MazeGame";
 import HiddenGame from "./pages/HiddenGame";
 import DinoGame from "./pages/DinoGame";
 import HospitalGame from "./pages/HospitalGame";
+import StickerBook from "./pages/StickerBook";
 import { Layout } from "./components/Layout";
 
 const NotFound = () => (
@@ -48,6 +49,7 @@ export const router = createBrowserRouter(
   { path: "/game/hidden", element: <HiddenGame /> },
   { path: "/game/dino", element: <DinoGame /> },
   { path: "/game/hospital", element: <HospitalGame /> },
+  { path: "/stickers", element: <StickerBook /> },
     {
       path: "*",
       element: (
