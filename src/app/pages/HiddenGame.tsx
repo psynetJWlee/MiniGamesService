@@ -1,69 +1,195 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import confetti from 'canvas-confetti';
+import { GameShell } from '../components/GameShell';
+import { ResultModal } from '../components/ResultModal';
+import { shuffle } from '../lib/shuffle';
+import { playCorrect } from '../lib/sound';
+import { burstSmall } from '../lib/celebrate';
+import { starsForLower } from '../lib/scoring';
+import { useGameProgress } from '../lib/useGameProgress';
 
-const HIDDEN_ITEMS = [
-  { id: 'star', emoji: '★', name: '별', x: 20, y: 30 },
-  { id: 'apple', emoji: '🍎', name: '사과', x: 75, y: 45 },
-  { id: 'car', emoji: '🚗', name: '자동차', x: 40, y: 80 },
+const BG_IMAGE =
+  'https://images.unsplash.com/photo-1724421815419-21f4c87c259b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg';
+
+const ITEM_POOL = [
+  { emoji: '⭐', name: '별' },
+  { emoji: '🍎', name: '사과' },
+  { emoji: '🚗', name: '자동차' },
+  { emoji: '🔑', name: '열쇠' },
+  { emoji: '⚽', name: '공' },
+  { emoji: '🎈', name: '풍선' },
+  { emoji: '🦋', name: '나비' },
+  { emoji: '🍄', name: '버섯' },
+  { emoji: '🌸', name: '꽃' },
 ];
+
+interface HiddenItem {
+  id: number;
+  emoji: string;
+  x: number;
+  y: number;
+}
+
+interface Level {
+  label: string;
+  count: number;
+  /** Hit-area size in px (shrinks with difficulty). */
+  hit: number;
+  hints: number;
+  stars: { three: number; two: number };
+}
+
+const LEVELS: Level[] = [
+  { label: '쉬워요', count: 3, hit: 84, hints: 3, stars: { three: 0, two: 1 } },
+  { label: '보통이에요', count: 5, hit: 64, hints: 2, stars: { three: 0, two: 2 } },
+  { label: '어려워요', count: 7, hit: 50, hints: 2, stars: { three: 1, two: 3 } },
+];
+
+let itemSeq = 0;
+
+function buildRound(level: Level): HiddenItem[] {
+  return shuffle(ITEM_POOL)
+    .slice(0, level.count)
+    .map((it) => ({
+      id: ++itemSeq,
+      emoji: it.emoji,
+      x: Math.random() * 75 + 12,
+      y: Math.random() * 65 + 15,
+    }));
+}
 
 export default function HiddenGame() {
   const navigate = useNavigate();
-  const [found, setFound] = useState<string[]>([]);
+  const { level, setLevel, submitResult } = useGameProgress('hidden');
+  const levelIndex = Math.min(level, LEVELS.length - 1);
+  const config = LEVELS[levelIndex];
 
-  const handleFind = (id: string) => {
-    if (!found.includes(id)) {
-      setFound([...found, id]);
-      confetti({ particleCount: 50, spread: 60 });
-      if (found.length + 1 === HIDDEN_ITEMS.length) {
-        confetti({ particleCount: 200, spread: 90 });
-      }
+  const [items, setItems] = useState<HiddenItem[]>(() => buildRound(config));
+  const [found, setFound] = useState<number[]>([]);
+  const [hintsLeft, setHintsLeft] = useState(config.hints);
+  const [hintActive, setHintActive] = useState(false);
+  const [cleared, setCleared] = useState(false);
+  const [earnedStars, setEarnedStars] = useState(0);
+
+  const startRound = (cfg: Level) => {
+    setItems(buildRound(cfg));
+    setFound([]);
+    setHintsLeft(cfg.hints);
+    setHintActive(false);
+    setCleared(false);
+  };
+
+  const handleFind = (id: number) => {
+    if (found.includes(id)) return;
+    const next = [...found, id];
+    setFound(next);
+    playCorrect();
+    burstSmall();
+    if (next.length === items.length) {
+      const used = config.hints - hintsLeft;
+      const stars = starsForLower(used, config.stars);
+      setEarnedStars(stars);
+      submitResult({ stars, level: levelIndex });
+      setTimeout(() => setCleared(true), 500);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-8 font-kids">
-      <div className="flex justify-between items-center mb-8">
-        <button onClick={() => navigate('/')} className="p-4 bg-white rounded-2xl shadow-md text-orange-500"><ArrowLeft size={32} /></button>
-        <div className="flex gap-4">
-          {HIDDEN_ITEMS.map(item => (
-            <div key={item.id} className={`p-4 rounded-2xl border-4 transition-all ${found.includes(item.id) ? 'bg-green-100 border-green-500 scale-90 opacity-50' : 'bg-white border-yellow-400'}`}>
-              <span className="text-3xl">{item.emoji}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+  const useHint = () => {
+    if (hintsLeft <= 0 || hintActive) return;
+    setHintsLeft((h) => h - 1);
+    setHintActive(true);
+    setTimeout(() => setHintActive(false), 1500);
+  };
 
-      <div className="relative aspect-video rounded-[50px] overflow-hidden shadow-2xl border-8 border-white">
-        <ImageWithFallback 
-          src="https://images.unsplash.com/photo-1724421815419-21f4c87c259b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg"
-          alt="Hidden objects landscape"
-          className="w-full h-full object-cover"
-        />
-        
-        {HIDDEN_ITEMS.map(item => (
-          <button
-            key={item.id}
-            onClick={() => handleFind(item.id)}
-            className="absolute w-20 h-20 flex items-center justify-center transition-all"
-            style={{ left: `${item.x}%`, top: `${item.y}%`, opacity: found.includes(item.id) ? 1 : 0.01 }}
-          >
-            <span className={`text-4xl ${found.includes(item.id) ? 'animate-bounce' : ''}`}>{item.emoji}</span>
-            {found.includes(item.id) && <div className="absolute inset-0 border-4 border-green-500 rounded-full" />}
-          </button>
-        ))}
-      </div>
+  const goNextLevel = () => {
+    const next = Math.min(levelIndex + 1, LEVELS.length - 1);
+    setLevel(next);
+    startRound(LEVELS[next]);
+  };
 
-      {found.length === HIDDEN_ITEMS.length && (
-        <div className="mt-12 text-center">
-          <h2 className="text-5xl font-title text-orange-600 mb-6">모두 다 찾았어요! 대단해요!</h2>
-          <button onClick={() => navigate('/')} className="bg-orange-500 text-white px-12 py-5 rounded-3xl font-title text-2xl">홈으로 가기</button>
-        </div>
-      )}
+  const status = (
+    <div className="bg-white/90 px-4 py-2 rounded-2xl shadow-md text-orange-500 font-title text-xl">
+      {found.length}/{items.length}
     </div>
+  );
+
+  return (
+    <GameShell
+      title="숨은 그림 찾기"
+      levelIndex={levelIndex}
+      levelCount={LEVELS.length}
+      status={status}
+      onReset={() => startRound(config)}
+    >
+      {/* Items to find + hint */}
+      <div className="flex items-center justify-center flex-wrap gap-3 mb-6">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className={`p-3 rounded-2xl border-4 transition-all ${
+              found.includes(item.id) ? 'bg-green-100 border-green-500 scale-90 opacity-50' : 'bg-white border-yellow-400'
+            }`}
+          >
+            <span className="text-2xl">{item.emoji}</span>
+          </div>
+        ))}
+        <button
+          onClick={useHint}
+          disabled={hintsLeft <= 0}
+          className="flex items-center gap-2 bg-purple-400 disabled:opacity-40 text-white px-4 py-2.5 rounded-2xl shadow-md font-title hover:scale-105 transition-transform"
+        >
+          <Search size={22} />
+          돋보기 {hintsLeft}
+        </button>
+      </div>
+
+      <div className="relative aspect-video rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
+        <ImageWithFallback src={BG_IMAGE} alt="숨은 그림 배경" className="w-full h-full object-cover" />
+
+        {items.map((item) => {
+          const isFound = found.includes(item.id);
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleFind(item.id)}
+              className="absolute flex items-center justify-center"
+              style={{
+                left: `${item.x}%`,
+                top: `${item.y}%`,
+                width: config.hit,
+                height: config.hit,
+                opacity: isFound ? 1 : 0.01,
+              }}
+            >
+              <span className={`text-4xl ${isFound ? 'animate-bounce' : ''}`}>{item.emoji}</span>
+              {isFound && <div className="absolute inset-0 border-4 border-green-500 rounded-full" />}
+              {/* Hint pulse for unfound items */}
+              {!isFound && hintActive && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: [0, 0.8, 0], scale: [0.5, 1.4, 0.5] }}
+                  transition={{ duration: 1.2, repeat: 1 }}
+                  className="absolute inset-0 border-4 border-purple-400 rounded-full"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <ResultModal
+        open={cleared}
+        stars={earnedStars}
+        title="모두 다 찾았어요!"
+        subtitle="대단해요! 보물을 다 찾았어요!"
+        hasNextLevel={levelIndex < LEVELS.length - 1}
+        onNext={goNextLevel}
+        onRetry={() => startRound(config)}
+        onHome={() => navigate('/')}
+      />
+    </GameShell>
   );
 }

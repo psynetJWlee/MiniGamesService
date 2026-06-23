@@ -10,7 +10,6 @@ import HiddenGame from "./pages/HiddenGame";
 import DinoGame from "./pages/DinoGame";
 import HospitalGame from "./pages/HospitalGame";
 import { Layout } from "./components/Layout";
-import React from "react";
 
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">

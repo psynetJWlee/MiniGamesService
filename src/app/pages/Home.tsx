@@ -1,7 +1,7 @@
-import React from 'react';
 import { motion } from 'motion/react';
 import { GameCard } from '../components/GameCard';
 import { useNavigate } from 'react-router';
+import { getGameRecord, getTotalStars, type GameId } from '../lib/storage';
 
 const GAMES = [
   {
@@ -80,6 +80,8 @@ const GAMES = [
 
 export default function Home() {
   const navigate = useNavigate();
+  // Read once per mount — the home screen is re-mounted when returning from a game.
+  const totalStars = getTotalStars();
 
   return (
     <div className="max-w-7xl mx-auto pt-8">
@@ -89,7 +91,11 @@ export default function Home() {
         className="mb-12 text-center"
       >
         <h2 className="text-3xl font-title text-gray-700 mb-2">어떤 놀이를 시작해볼까?</h2>
-        <p className="text-xl font-body text-gray-500">가온이랑 시온이랑 재미있게 놀아보아요!</p>
+        <p className="text-xl font-body text-gray-500 mb-5">가온이랑 시온이랑 재미있게 놀아보아요!</p>
+        <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full shadow-md border-2 border-yellow-200">
+          <span className="text-2xl">⭐</span>
+          <span className="text-2xl font-title text-orange-500">모은 별 {totalStars}개</span>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
@@ -102,6 +108,7 @@ export default function Home() {
           >
             <GameCard
               {...game}
+              stars={getGameRecord(game.id as GameId).stars}
               onClick={() => {
                 navigate(`/game/${game.id}`);
               }}

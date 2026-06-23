@@ -1,35 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import confetti from 'canvas-confetti';
+import { GameShell } from '../components/GameShell';
+import { ResultModal } from '../components/ResultModal';
+import { shuffle } from '../lib/shuffle';
+import { playCorrect } from '../lib/sound';
+import { burstSmall } from '../lib/celebrate';
+import { starsForLower } from '../lib/scoring';
+import { useWrongFeedback } from '../lib/useWrongFeedback';
+import { useGameProgress } from '../lib/useGameProgress';
 
-const CARD_DATA = [
-  { id: 1, img: '🦁' }, { id: 2, img: '🦁' },
-  { id: 3, img: '🐵' }, { id: 4, img: '🐵' },
-  { id: 5, img: '🦒' }, { id: 6, img: '🦒' },
-  { id: 7, img: '🐘' }, { id: 8, img: '🐘' },
-  { id: 9, img: '🐷' }, { id: 10, img: '🐷' },
-  { id: 11, img: '🐸' }, { id: 12, img: '🐸' },
+const THEMES: Record<string, string[]> = {
+  animals: ['🦁', '🐵', '🦒', '🐘', '🐷', '🐸', '🐶', '🐱', '🐰', '🐼', '🐯', '🦊'],
+  fruits: ['🍎', '🍌', '🍇', '🍓', '🍉', '🍑', '🍍', '🥝', '🍒', '🥥', '🍊', '🍐'],
+  vehicles: ['🚗', '🚌', '🚓', '🚑', '🚒', '🚜', '🚲', '✈️', '🚀', '🚁', '🚢', '🚂'],
+};
+const THEME_KEYS = Object.keys(THEMES);
+
+interface Level {
+  label: string;
+  pairs: number;
+  cols: string;
+  /** Max moves for 3 / 2 stars (clearing always gives ≥1). */
+  stars: { three: number; two: number };
+}
+
+const LEVELS: Level[] = [
+  { label: '쉬워요', pairs: 6, cols: 'grid-cols-3 md:grid-cols-4', stars: { three: 8, two: 12 } },
+  { label: '보통이에요', pairs: 8, cols: 'grid-cols-4', stars: { three: 11, two: 16 } },
+  { label: '어려워요', pairs: 10, cols: 'grid-cols-4 md:grid-cols-5', stars: { three: 14, two: 20 } },
 ];
+
+interface Card {
+  id: number;
+  emoji: string;
+}
+
+function buildDeck(level: Level): Card[] {
+  const theme = THEMES[THEME_KEYS[Math.floor(Math.random() * THEME_KEYS.length)]];
+  const picks = shuffle(theme).slice(0, level.pairs);
+  const doubled = picks.flatMap((emoji) => [emoji, emoji]);
+  return shuffle(doubled).map((emoji, i) => ({ id: i, emoji }));
+}
 
 export default function MatchingGame() {
   const navigate = useNavigate();
-  const [cards, setCards] = useState<any[]>([]);
+  const wrong = useWrongFeedback();
+  const { level, setLevel, submitResult } = useGameProgress('matching');
+  const levelIndex = Math.min(level, LEVELS.length - 1);
+  const config = LEVELS[levelIndex];
+
+  const [cards, setCards] = useState<Card[]>(() => buildDeck(config));
   const [flipped, setFlipped] = useState<number[]>([]);
   const [solved, setSolved] = useState<number[]>([]);
   const [disabled, setDisabled] = useState(false);
+  const [moves, setMoves] = useState(0);
+  const [cleared, setCleared] = useState(false);
+  const [earnedStars, setEarnedStars] = useState(0);
 
-  useEffect(() => {
-    initializeGame();
-  }, []);
-
-  const initializeGame = () => {
-    const shuffled = [...CARD_DATA].sort(() => Math.random() - 0.5);
-    setCards(shuffled);
-    setSolved([]);
+  const startGame = (cfg: Level) => {
+    setCards(buildDeck(cfg));
     setFlipped([]);
+    setSolved([]);
     setDisabled(false);
+    setMoves(0);
+    setCleared(false);
   };
 
   const handleCardClick = (id: number) => {
@@ -37,66 +72,108 @@ export default function MatchingGame() {
 
     const newFlipped = [...flipped, id];
     setFlipped(newFlipped);
+    if (newFlipped.length < 2) return;
 
-    if (newFlipped.length === 2) {
-      setDisabled(true);
-      const [firstId, secondId] = newFlipped;
-      const firstCard = cards.find(c => c.id === firstId);
-      const secondCard = cards.find(c => c.id === secondId);
+    setDisabled(true);
+    const moveCount = moves + 1;
+    setMoves(moveCount);
+    const [a, b] = newFlipped;
+    const cardA = cards.find((c) => c.id === a);
+    const cardB = cards.find((c) => c.id === b);
 
-      if (firstCard.img === secondCard.img) {
-        setSolved([...solved, firstId, secondId]);
+    if (cardA && cardB && cardA.emoji === cardB.emoji) {
+      const newSolved = [...solved, a, b];
+      setSolved(newSolved);
+      setFlipped([]);
+      setDisabled(false);
+      playCorrect();
+      burstSmall();
+      if (newSolved.length === cards.length) {
+        const stars = starsForLower(moveCount, config.stars);
+        setEarnedStars(stars);
+        submitResult({ stars, score: moveCount, level: levelIndex });
+        setTimeout(() => setCleared(true), 600);
+      }
+    } else {
+      wrong.trigger();
+      setTimeout(() => {
         setFlipped([]);
         setDisabled(false);
-        if (solved.length + 2 === cards.length) {
-          confetti({ particleCount: 150, spread: 70 });
-        }
-      } else {
-        setTimeout(() => {
-          setFlipped([]);
-          setDisabled(false);
-        }, 1000);
-      }
+      }, 900);
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-12">
-        <button onClick={() => navigate('/')} className="p-4 bg-white rounded-2xl shadow-md text-orange-500 hover:scale-110 transition-transform">
-          <ArrowLeft size={32} />
-        </button>
-        <h2 className="text-4xl font-title text-orange-600">똑같은 그림 찾기</h2>
-        <button onClick={initializeGame} className="p-4 bg-white rounded-2xl shadow-md text-blue-500 hover:scale-110 transition-transform">
-          <RotateCcw size={32} />
-        </button>
-      </div>
+  const goNextLevel = () => {
+    const next = Math.min(levelIndex + 1, LEVELS.length - 1);
+    setLevel(next);
+    startGame(LEVELS[next]);
+  };
 
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
+  const status = (
+    <div className="bg-white/90 px-4 py-2 rounded-2xl shadow-md text-orange-500 font-title text-xl">
+      {moves}번
+    </div>
+  );
+
+  return (
+    <GameShell
+      title="같은 그림 찾기"
+      levelIndex={levelIndex}
+      levelCount={LEVELS.length}
+      status={status}
+      onReset={() => startGame(config)}
+      contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-4xl mx-auto"
+    >
+      {wrong.overlay}
+
+      <div className={`grid ${config.cols} gap-3 md:gap-5`}>
         {cards.map((card) => {
-          const isFlipped = flipped.includes(card.id) || solved.includes(card.id);
+          const isUp = flipped.includes(card.id) || solved.includes(card.id);
+          const isSolved = solved.includes(card.id);
           return (
-            <motion.button
+            <button
               key={card.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => handleCardClick(card.id)}
-              className={`h-32 md:h-48 rounded-3xl text-5xl md:text-7xl shadow-xl flex items-center justify-center transition-all duration-500 preserve-3d ${
-                isFlipped ? 'bg-white rotate-y-180' : 'bg-orange-400'
-              }`}
+              className="aspect-square"
+              style={{ perspective: 1000 }}
+              aria-label={isUp ? card.emoji : '뒤집힌 카드'}
             >
-              {isFlipped ? card.img : '?'}
-            </motion.button>
+              <motion.div
+                animate={{ rotateY: isUp ? 180 : 0 }}
+                transition={{ duration: 0.4 }}
+                style={{ transformStyle: 'preserve-3d' }}
+                className={`relative w-full h-full rounded-3xl shadow-xl transition-opacity ${isSolved ? 'opacity-60' : ''}`}
+              >
+                {/* Face down */}
+                <div
+                  className="absolute inset-0 rounded-3xl bg-orange-400 flex items-center justify-center text-5xl md:text-6xl text-white"
+                  style={{ backfaceVisibility: 'hidden' }}
+                >
+                  ?
+                </div>
+                {/* Face up */}
+                <div
+                  className="absolute inset-0 rounded-3xl bg-white flex items-center justify-center text-5xl md:text-7xl"
+                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                >
+                  {card.emoji}
+                </div>
+              </motion.div>
+            </button>
           );
         })}
       </div>
 
-      {solved.length === cards.length && (
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mt-12 text-center p-8 bg-yellow-100 rounded-[40px] border-4 border-yellow-400 shadow-xl">
-          <p className="text-3xl font-title text-orange-600 mb-6">전부 다 찾았어요! 짝짝짝!</p>
-          <button onClick={initializeGame} className="bg-orange-500 text-white px-12 py-4 rounded-2xl font-title text-xl shadow-lg">다시 하기</button>
-        </motion.div>
-      )}
-    </div>
+      <ResultModal
+        open={cleared}
+        stars={earnedStars}
+        title="전부 다 찾았어요!"
+        subtitle={`${moves}번 만에 성공! 짝짝짝!`}
+        hasNextLevel={levelIndex < LEVELS.length - 1}
+        onNext={goNextLevel}
+        onRetry={() => startGame(config)}
+        onHome={() => navigate('/')}
+      />
+    </GameShell>
   );
 }

@@ -1,7 +1,7 @@
-import React from 'react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Play } from 'lucide-react';
+import { StarRating } from './StarRating';
 
 interface GameCardProps {
   id: string;
@@ -10,10 +10,12 @@ interface GameCardProps {
   imageUrl: string;
   color: string;
   icon: string;
+  /** Best stars earned for this game, 0–3. */
+  stars?: number;
   onClick: () => void;
 }
 
-export function GameCard({ title, description, imageUrl, color, icon, onClick }: GameCardProps) {
+export function GameCard({ title, description, imageUrl, color, icon, stars = 0, onClick }: GameCardProps) {
   return (
     <motion.button
       whileHover={{ y: -10, scale: 1.02 }}
@@ -35,6 +37,10 @@ export function GameCard({ title, description, imageUrl, color, icon, onClick }:
           <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm">
             <span className="text-2xl">{icon}</span>
             <span className="font-title text-gray-800 text-lg">{title}</span>
+          </div>
+          {/* Best stars earned so far */}
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-2xl px-3 py-1.5 shadow-sm">
+            <StarRating value={stars} size={18} />
           </div>
         </div>
 

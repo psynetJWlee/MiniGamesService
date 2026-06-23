@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Home as HomeIcon, Settings, Info } from 'lucide-react';
+import { Settings, Info } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;

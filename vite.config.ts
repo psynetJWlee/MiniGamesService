@@ -31,6 +31,11 @@ export default defineConfig({
     },
   },
 
+  // Honor the PORT env var when provided (e.g. by preview tooling), else 5173.
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+  },
+
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

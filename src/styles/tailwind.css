@@ -1,4 +1,14 @@
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
 
-@import 'tw-animate-css';
+/*
+ * Register the playful kids fonts in Tailwind's theme so that the
+ * `font-kids`, `font-title`, and `font-body` utilities are generated.
+ * (Defining them only on :root is NOT enough in Tailwind v4 — utilities
+ * come from the `--font-*` theme namespace.)
+ */
+@theme {
+  --font-kids: 'Gaegu', cursive;
+  --font-title: 'Jua', sans-serif;
+  --font-body: 'Gamja Flower', cursive;
+}
