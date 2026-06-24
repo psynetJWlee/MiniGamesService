@@ -16,7 +16,10 @@ export type GameId =
   | 'maze'
   | 'hidden'
   | 'dino'
-  | 'hospital';
+  | 'hospital'
+  | 'math'
+  | 'flags'
+  | 'hangul';
 
 export interface GameRecord {
   /** Best score achieved (higher is better; meaning is per-game). */
@@ -96,4 +99,14 @@ export function recordResult(
 export function getTotalStars(): number {
   const games = loadSave().games;
   return Object.values(games).reduce((sum, r) => sum + (r?.stars ?? 0), 0);
+}
+
+/** Wipe all game progress (stars, best scores, unlocked levels). */
+export function resetProgress() {
+  memoryCache = emptySave();
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore — in-memory cache is already cleared
+  }
 }

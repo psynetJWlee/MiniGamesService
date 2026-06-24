@@ -1,8 +1,17 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { GameCard } from '../components/GameCard';
 import { useNavigate } from 'react-router';
-import { getGameRecord, getTotalStars, type GameId } from '../lib/storage';
+import { getGameRecord, getTotalStars, resetProgress, type GameId } from '../lib/storage';
+import { resetStickers } from '../lib/stickers';
 import { usePlayer, PLAYERS } from '../lib/player';
+
+// Inline SVG thumbnail (no external image needed, never breaks).
+const thumb = (text: string, bg: string) =>
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="100%" height="100%" fill="${bg}"/><text x="50%" y="54%" font-family="sans-serif" font-weight="bold" font-size="120" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${text}</text></svg>`,
+  );
 
 const GAMES = [
   {
@@ -77,13 +86,51 @@ const GAMES = [
     color: '#B4E4FF',
     icon: '🏥',
   },
+  {
+    id: 'math',
+    title: '산수 놀이',
+    description: '더하기 빼기를 척척! 숫자 친구들과 신나게 계산해보아요.',
+    imageUrl: thumb('3 + 1', '#FF8FA3'),
+    color: '#FFB5A7',
+    icon: '➕',
+  },
+  {
+    id: 'flags',
+    title: '국기 맞추기',
+    description: '펄럭펄럭! 여러 나라의 국기를 보고 어디인지 맞춰보세요.',
+    imageUrl: 'https://flagcdn.com/w320/kr.png',
+    color: '#A0E7E5',
+    icon: '🚩',
+  },
+  {
+    id: 'hangul',
+    title: '한글 만들기',
+    description: '자음과 모음을 모아서 글자를 만들어요. 가나다라!',
+    imageUrl: thumb('가', '#7AA2F7'),
+    color: '#B5C7F7',
+    icon: '🔤',
+  },
 ];
 
 export default function Home() {
   const navigate = useNavigate();
   const { player, setPlayer } = usePlayer();
+  const [confirmingReset, setConfirmingReset] = useState(false);
   // Read once per mount — the home screen is re-mounted when returning from a game.
   const totalStars = getTotalStars();
+
+  const handleReset = () => {
+    resetProgress();
+    resetStickers();
+    // Reload so every screen (cards, header badge, total stars) reflects the wipe.
+    window.location.reload();
+  };
+
+  // Mastered (3-star) games sink to the bottom so the ones still to clear stay
+  // on top. sort() is stable, so each group keeps its original order.
+  const games = GAMES.map((g) => ({ ...g, stars: getGameRecord(g.id as GameId).stars })).sort(
+    (a, b) => (a.stars >= 3 ? 1 : 0) - (b.stars >= 3 ? 1 : 0),
+  );
 
   return (
     <div className="max-w-7xl mx-auto pt-8">
@@ -129,22 +176,45 @@ export default function Home() {
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-        {GAMES.map((game, index) => (
+        {games.map((game, index) => (
           <motion.div
             key={game.id}
+            layout
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.05 }}
           >
             <GameCard
               {...game}
-              stars={getGameRecord(game.id as GameId).stars}
+              stars={game.stars}
               onClick={() => {
                 navigate(`/game/${game.id}`);
               }}
             />
           </motion.div>
         ))}
+      </div>
+
+      {/* Small, faint reset for parents — wipes all stars and stickers. */}
+      <div className="mt-12 mb-4 text-center">
+        {confirmingReset ? (
+          <div className="inline-flex items-center gap-3 font-body text-gray-400">
+            <span className="text-sm">정말 모든 별과 스티커를 지울까요?</span>
+            <button onClick={handleReset} className="text-sm text-red-400 underline hover:text-red-500">
+              네, 초기화
+            </button>
+            <button onClick={() => setConfirmingReset(false)} className="text-sm underline hover:text-gray-600">
+              취소
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmingReset(true)}
+            className="text-xs text-gray-300 hover:text-gray-400 underline font-body"
+          >
+            별·스티커 모두 초기화
+          </button>
+        )}
       </div>
     </div>
   );

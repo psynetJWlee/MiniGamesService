@@ -107,3 +107,13 @@ export function getProgress(player: string): { collected: number; total: number 
   const collected = [...ALL_NORMAL, ...ALL_SPECIAL].filter((s) => owned[s.id]).length;
   return { collected, total: TOTAL };
 }
+
+/** Wipe every player's sticker collection. */
+export function resetStickers() {
+  cache = {};
+  try {
+    window.localStorage.removeItem(KEY);
+  } catch {
+    // ignore — in-memory cache is already cleared
+  }
+}
