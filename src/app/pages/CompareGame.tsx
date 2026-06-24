@@ -12,22 +12,31 @@ import { useGameProgress } from '../lib/useGameProgress';
 const ri = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 // Animals roughly ordered by real size (rank).
-const ANIMALS: { e: string; r: number }[] = [
-  { e: '🐜', r: 1 },
-  { e: '🐭', r: 2 },
-  { e: '🐹', r: 2 },
-  { e: '🐰', r: 3 },
-  { e: '🐱', r: 4 },
-  { e: '🐶', r: 5 },
-  { e: '🐷', r: 6 },
-  { e: '🐯', r: 7 },
-  { e: '🦓', r: 8 },
-  { e: '🐴', r: 8 },
-  { e: '🦏', r: 9 },
-  { e: '🐘', r: 10 },
-  { e: '🦒', r: 10 },
-  { e: '🐳', r: 12 },
+const ANIMALS: { e: string; n: string; r: number }[] = [
+  { e: '🐜', n: '개미', r: 1 },
+  { e: '🐭', n: '생쥐', r: 2 },
+  { e: '🐹', n: '햄스터', r: 2 },
+  { e: '🐰', n: '토끼', r: 3 },
+  { e: '🐱', n: '고양이', r: 4 },
+  { e: '🐶', n: '강아지', r: 5 },
+  { e: '🐷', n: '돼지', r: 6 },
+  { e: '🐯', n: '호랑이', r: 7 },
+  { e: '🦓', n: '얼룩말', r: 8 },
+  { e: '🐴', n: '말', r: 8 },
+  { e: '🦏', n: '코뿔소', r: 9 },
+  { e: '🐘', n: '코끼리', r: 10 },
+  { e: '🦒', n: '기린', r: 10 },
+  { e: '🐳', n: '고래', r: 12 },
 ];
+
+function animalCard(a: { e: string; n: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className="text-7xl md:text-8xl">{a.e}</span>
+      <span className="text-2xl md:text-3xl font-title text-gray-600">{a.n}</span>
+    </div>
+  );
+}
 const FOODS = ['🍎', '🍌', '🍓', '🍇', '🍪', '⭐', '🐟', '🌸'];
 
 type Mode = 'size' | 'count';
@@ -78,8 +87,8 @@ function makeQuestion(level: Level): Question {
     const answer: 'left' | 'right' = reverse ? (leftIsBigger ? 'right' : 'left') : leftIsBigger ? 'left' : 'right';
     return {
       prompt: reverse ? '누가 더 작을까?' : '누가 더 클까?',
-      left: <span className="text-7xl md:text-8xl">{a.e}</span>,
-      right: <span className="text-7xl md:text-8xl">{b.e}</span>,
+      left: animalCard(a),
+      right: animalCard(b),
       answer,
     };
   }
