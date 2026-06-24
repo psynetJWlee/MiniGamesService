@@ -117,6 +117,14 @@ const GAMES = [
     color: '#B5C7F7',
     icon: '🔤',
   },
+  {
+    id: 'puzzle',
+    title: '직소 퍼즐',
+    description: '흩어진 조각을 드래그해서 그림을 완성해보아요!',
+    imageUrl: thumb('퍼즐', '#9B7EDE'),
+    color: '#C9B6F0',
+    icon: '🧩',
+  },
 ];
 
 export default function Home() {

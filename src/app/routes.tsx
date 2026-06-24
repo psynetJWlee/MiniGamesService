@@ -12,6 +12,7 @@ import HospitalGame from "./pages/HospitalGame";
 import MathGame from "./pages/MathGame";
 import FlagGame from "./pages/FlagGame";
 import HangulGame from "./pages/HangulGame";
+import PuzzleGame from "./pages/PuzzleGame";
 import StickerBook from "./pages/StickerBook";
 import { Layout } from "./components/Layout";
 
@@ -55,6 +56,7 @@ export const router = createBrowserRouter(
   { path: "/game/math", element: <MathGame /> },
   { path: "/game/flags", element: <FlagGame /> },
   { path: "/game/hangul", element: <HangulGame /> },
+  { path: "/game/puzzle", element: <PuzzleGame /> },
   { path: "/stickers", element: <StickerBook /> },
     {
       path: "*",

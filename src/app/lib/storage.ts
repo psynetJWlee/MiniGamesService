@@ -19,7 +19,8 @@ export type GameId =
   | 'hospital'
   | 'math'
   | 'flags'
-  | 'hangul';
+  | 'hangul'
+  | 'puzzle';
 
 export interface GameRecord {
   /** Best score achieved (higher is better; meaning is per-game). */

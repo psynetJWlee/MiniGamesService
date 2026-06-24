@@ -9,6 +9,8 @@ dist/
 
 # Original full-size photos (only the resized thumbnails in src/assets are committed)
 image/
+# Original puzzle images (only the optimized puzzle-*.jpg are committed)
+src/assets/puzzle/originals/
 
 # Logs & OS files
 *.log
