@@ -5,6 +5,13 @@ import { useNavigate } from 'react-router';
 import { getGameRecord, getTotalStars, resetProgress, type GameId } from '../lib/storage';
 import { resetStickers } from '../lib/stickers';
 import { usePlayer, PLAYERS } from '../lib/player';
+import gaonPhoto from '../../assets/players/gaon-1.jpg';
+import sionPhoto from '../../assets/players/sion-1.jpg';
+
+const PLAYER_PHOTOS: Record<string, string> = {
+  가온이: gaonPhoto,
+  시온이: sionPhoto,
+};
 
 // Inline SVG thumbnail (no external image needed, never breaks).
 const thumb = (text: string, bg: string) =>
@@ -156,13 +163,17 @@ export default function Home() {
               <button
                 key={name}
                 onClick={() => setPlayer(name)}
-                className={`px-7 py-3 rounded-full font-title text-2xl shadow-md border-4 transition-all active:scale-95 ${
+                className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full font-title text-2xl shadow-md border-4 transition-all active:scale-95 ${
                   selected
                     ? 'bg-orange-400 text-white border-orange-400 scale-105'
                     : 'bg-white text-orange-500 border-orange-200 hover:scale-105'
                 }`}
               >
-                {selected && '🧒 '}
+                <img
+                  src={PLAYER_PHOTOS[name]}
+                  alt={name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                />
                 {name}
               </button>
             );

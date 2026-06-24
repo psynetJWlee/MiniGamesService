@@ -7,6 +7,9 @@ dist/
 # Local editor / tooling config
 .claude/
 
+# Original full-size photos (only the resized thumbnails in src/assets are committed)
+image/
+
 # Logs & OS files
 *.log
 .DS_Store
