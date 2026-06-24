@@ -125,6 +125,38 @@ const GAMES = [
     color: '#C9B6F0',
     icon: '🧩',
   },
+  {
+    id: 'pattern',
+    title: '패턴 찾기',
+    description: '규칙을 보고 빈칸에 들어갈 그림을 맞춰보아요!',
+    imageUrl: thumb('패턴', '#4FB3A0'),
+    color: '#A8E6CF',
+    icon: '🧠',
+  },
+  {
+    id: 'compare',
+    title: '누가 더 클까?',
+    description: '둘 중에 더 크거나 더 많은 쪽을 골라보아요!',
+    imageUrl: thumb('비교', '#EAA64D'),
+    color: '#FFD9A0',
+    icon: '⚖️',
+  },
+  {
+    id: 'clock',
+    title: '시계 보기',
+    description: '시계의 바늘을 보고 몇 시인지 맞춰보아요!',
+    imageUrl: thumb('시계', '#5C9CE0'),
+    color: '#B5D8F7',
+    icon: '🕐',
+  },
+  {
+    id: 'shopping',
+    title: '마트 장보기',
+    description: '물건 값을 더해서 모두 얼마인지 계산해보아요!',
+    imageUrl: thumb('마트', '#E07BA0'),
+    color: '#F7C2D9',
+    icon: '🛒',
+  },
 ];
 
 export default function Home() {

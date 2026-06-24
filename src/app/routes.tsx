@@ -13,6 +13,10 @@ import MathGame from "./pages/MathGame";
 import FlagGame from "./pages/FlagGame";
 import HangulGame from "./pages/HangulGame";
 import PuzzleGame from "./pages/PuzzleGame";
+import PatternGame from "./pages/PatternGame";
+import CompareGame from "./pages/CompareGame";
+import ClockGame from "./pages/ClockGame";
+import ShoppingGame from "./pages/ShoppingGame";
 import StickerBook from "./pages/StickerBook";
 import { Layout } from "./components/Layout";
 
@@ -57,6 +61,10 @@ export const router = createBrowserRouter(
   { path: "/game/flags", element: <FlagGame /> },
   { path: "/game/hangul", element: <HangulGame /> },
   { path: "/game/puzzle", element: <PuzzleGame /> },
+  { path: "/game/pattern", element: <PatternGame /> },
+  { path: "/game/compare", element: <CompareGame /> },
+  { path: "/game/clock", element: <ClockGame /> },
+  { path: "/game/shopping", element: <ShoppingGame /> },
   { path: "/stickers", element: <StickerBook /> },
     {
       path: "*",

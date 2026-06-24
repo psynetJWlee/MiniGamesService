@@ -20,7 +20,11 @@ export type GameId =
   | 'math'
   | 'flags'
   | 'hangul'
-  | 'puzzle';
+  | 'puzzle'
+  | 'pattern'
+  | 'compare'
+  | 'clock'
+  | 'shopping';
 
 export interface GameRecord {
   /** Best score achieved (higher is better; meaning is per-game). */
