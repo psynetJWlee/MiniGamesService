@@ -143,17 +143,17 @@ export default function SoundGame() {
       levelCount={LEVELS.length}
       status={status}
       onReset={() => startRound(config)}
-      contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-4xl mx-auto"
+      contentClassName="relative z-10 px-4 pt-24 pb-4 max-w-4xl mx-auto"
     >
       {wrong.overlay}
 
-      <div className="bg-white rounded-[50px] p-10 md:p-12 shadow-2xl text-center mb-10 border-8 border-yellow-100">
+      <div className="bg-white rounded-[50px] p-6 md:p-12 shadow-2xl text-center mb-6 md:mb-10 border-8 border-yellow-100">
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
           onClick={() => speak(quiz.animal.sound)}
           aria-label="동물 소리 듣기"
-          className="relative w-44 h-44 bg-yellow-400 rounded-full flex items-center justify-center text-white mx-auto mb-6 shadow-xl"
+          className="relative w-32 h-32 md:w-44 md:h-44 bg-yellow-400 rounded-full flex items-center justify-center text-white mx-auto mb-4 md:mb-6 shadow-xl"
         >
           {/* Animated sound waves */}
           {[0, 1, 2].map((i) => (
@@ -169,7 +169,7 @@ export default function SoundGame() {
         </motion.button>
 
         {/* Reveal the animal once answered correctly, else a question mark. */}
-        <div className="text-7xl mb-2 h-20 flex items-center justify-center">
+        <div className="text-6xl md:text-7xl mb-2 h-14 md:h-20 flex items-center justify-center">
           {isCorrect ? (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
               {quiz.animal.emoji}
@@ -181,7 +181,7 @@ export default function SoundGame() {
         <p className="text-4xl font-title text-gray-700">"{quiz.animal.sound}"</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5">
         {quiz.options.map((option) => {
           const isPicked = selected === option;
           const isAnswer = option === quiz.animal.name;
@@ -190,7 +190,7 @@ export default function SoundGame() {
               key={option}
               disabled={isCorrect === true}
               onClick={() => handleSelect(option)}
-              className={`p-7 rounded-[30px] text-3xl font-title transition-all shadow-lg flex items-center justify-between ${
+              className={`p-4 md:p-7 rounded-[30px] text-2xl md:text-3xl font-title transition-all shadow-lg flex items-center justify-between ${
                 isPicked
                   ? isAnswer
                     ? 'bg-green-500 text-white scale-105'

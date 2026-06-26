@@ -101,8 +101,8 @@ export default function HiddenGame() {
         </button>
       </div>
 
-      {/* Scene */}
-      <div className="rounded-[36px] overflow-hidden shadow-2xl border-8 border-white bg-white">
+      {/* Scene — sized so its height never exceeds the viewport (no scroll in any orientation) */}
+      <div className="mx-auto w-[min(100%,calc((100dvh-15rem)*800/520))] rounded-[36px] overflow-hidden shadow-2xl border-8 border-white bg-white">
         <svg viewBox="0 0 800 520" className="w-full h-auto block select-none">
           {scene.render({ found, hint: hintActive, onFind: handleFind })}
         </svg>

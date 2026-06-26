@@ -127,7 +127,8 @@ export default function BalloonGame() {
   useEffect(() => {
     if (cleared) return;
     const interval = setInterval(() => {
-      setBalloons((prev) => [...prev, makeBalloon(config)]);
+      // Spawn 3 balloons per tick so there are ~3x as many on screen at once.
+      setBalloons((prev) => [...prev, makeBalloon(config), makeBalloon(config), makeBalloon(config)]);
     }, config.spawnMs);
     return () => clearInterval(interval);
   }, [cleared, config]);

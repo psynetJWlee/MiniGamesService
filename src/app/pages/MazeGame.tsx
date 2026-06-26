@@ -226,15 +226,18 @@ export default function MazeGame() {
       levelCount={LEVELS.length}
       status={status}
       onReset={() => startRound(config)}
-      contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-2xl mx-auto"
+      contentClassName="relative z-10 px-4 pt-24 pb-4 max-w-2xl landscape:max-w-5xl mx-auto"
     >
+      {/* Portrait: board above the D-pad. Landscape: board and D-pad side by side so the whole
+          game fits the viewport with no scroll. The board is capped by available height too. */}
+      <div className="flex flex-col items-center gap-6 landscape:flex-row landscape:items-center landscape:justify-center landscape:gap-10">
       <div
         ref={boardRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square grid gap-1.5 mb-8 border-8 border-yellow-100 touch-none cursor-pointer select-none"
+        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square w-[min(100%,calc(100dvh-16rem))] landscape:w-[min(58vw,calc(100dvh-8rem))] shrink-0 grid gap-1.5 border-8 border-yellow-100 touch-none cursor-pointer select-none"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         {maze.grid.map((row, y) =>
@@ -268,6 +271,7 @@ export default function MazeGame() {
         <ControlButton icon={<ChevronLeft size={36} />} onClick={() => move(-1, 0)} />
         <ControlButton icon={<ChevronDown size={36} />} onClick={() => move(0, 1)} />
         <ControlButton icon={<ChevronRight size={36} />} onClick={() => move(1, 0)} />
+      </div>
       </div>
 
       <ResultModal

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDrag, useDrop, useDragLayer, DndProvider } from 'react-dnd';
 import { TouchBackend } from 'react-dnd-touch-backend';
 import { useNavigate } from 'react-router';
@@ -180,7 +180,16 @@ export default function PuzzleGame() {
 
   // Tray pieces = not-yet-placed, in their shuffled order.
   const trayPieces = useMemo(() => order.filter((p) => !placed.has(keyOf(p.r, p.c))), [order, placed]);
-  const trayPieceSize = Math.round(300 / n);
+
+  // Shrink tray pieces on narrow screens so the whole tray fits the viewport
+  // without scrolling (phones in portrait can't fit full-size pieces + board).
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1024));
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const trayPieceSize = Math.round(Math.min(300, vw * 0.6) / n);
 
   const status = (
     <div className="bg-white/90 px-4 py-2 rounded-2xl shadow-md text-orange-500 font-title text-xl">
@@ -196,31 +205,36 @@ export default function PuzzleGame() {
         levelCount={LEVELS.length}
         status={status}
         onReset={() => startRound(config, false)}
-        contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-2xl mx-auto"
+        contentClassName="relative z-10 px-4 pt-24 pb-4 max-w-2xl landscape:max-w-6xl mx-auto"
       >
         <PuzzleDragLayer />
         {wrong.overlay}
 
-        {/* Board with a faint guide image behind the slots */}
-        <div className="relative w-full max-w-[460px] mx-auto aspect-square rounded-2xl overflow-hidden shadow-2xl border-8 border-white bg-orange-50">
-          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `url(${image})`, backgroundSize: '100% 100%' }} />
-          <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${n}, 1fr)`, gridTemplateRows: `repeat(${n}, 1fr)` }}>
-            {Array.from({ length: n * n }).map((_, i) => {
-              const r = Math.floor(i / n);
-              const c = i % n;
-              return (
-                <Slot key={i} r={r} c={c} n={n} image={image} isPlaced={placed.has(keyOf(r, c))} onPlace={handlePlace} />
-              );
-            })}
+        {/* Portrait: board stacked above the tray. Landscape: board and tray sit side by side so
+            nothing ever overflows the viewport (no scroll in any orientation). The board is also
+            capped by the available height so it stays fully visible. */}
+        <div className="flex flex-col items-center gap-4 landscape:flex-row landscape:items-start landscape:justify-center landscape:gap-6">
+          {/* Board with a faint guide image behind the slots */}
+          <div className="relative shrink-0 w-[min(100%,460px,calc(100dvh-34rem))] landscape:w-[min(46vw,460px,calc(100dvh-8rem))] aspect-square rounded-2xl overflow-hidden shadow-2xl border-8 border-white bg-orange-50">
+            <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `url(${image})`, backgroundSize: '100% 100%' }} />
+            <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${n}, 1fr)`, gridTemplateRows: `repeat(${n}, 1fr)` }}>
+              {Array.from({ length: n * n }).map((_, i) => {
+                const r = Math.floor(i / n);
+                const c = i % n;
+                return (
+                  <Slot key={i} r={r} c={c} n={n} image={image} isPlaced={placed.has(keyOf(r, c))} onPlace={handlePlace} />
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Tray of shuffled pieces */}
-        <div className="mt-6 bg-white/50 backdrop-blur-md p-4 rounded-[30px] shadow-inner border-4 border-dashed border-white/80 min-h-[80px]">
-          <div className="flex flex-wrap justify-center gap-2">
-            {trayPieces.map((p) => (
-              <TrayPiece key={keyOf(p.r, p.c)} image={image} n={n} r={p.r} c={p.c} size={trayPieceSize} />
-            ))}
+          {/* Tray of shuffled pieces */}
+          <div className="w-full landscape:flex-1 bg-white/50 backdrop-blur-md p-4 rounded-[30px] shadow-inner border-4 border-dashed border-white/80 min-h-[80px]">
+            <div className="flex flex-wrap justify-center gap-2">
+              {trayPieces.map((p) => (
+                <TrayPiece key={keyOf(p.r, p.c)} image={image} n={n} r={p.r} c={p.c} size={trayPieceSize} />
+              ))}
+            </div>
           </div>
         </div>
 

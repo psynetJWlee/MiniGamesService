@@ -122,7 +122,7 @@ export default function MatchingGame() {
       levelCount={LEVELS.length}
       status={status}
       onReset={() => startGame(config)}
-      contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-4xl mx-auto"
+      contentClassName="relative z-10 px-4 pt-24 pb-4 max-w-4xl mx-auto"
     >
       {wrong.overlay}
 
