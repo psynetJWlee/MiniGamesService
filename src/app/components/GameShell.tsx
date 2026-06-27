@@ -58,7 +58,7 @@ export function GameShell({
   const showDots = typeof levelIndex === 'number' && typeof levelCount === 'number' && levelCount > 1;
 
   return (
-    <div className={`relative min-h-screen overflow-hidden font-kids ${bgClassName}`}>
+    <div className={`relative h-[100dvh] overflow-hidden font-kids ${bgClassName}`}>
       {showBlobs && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pink-100 rounded-full blur-3xl opacity-60" />

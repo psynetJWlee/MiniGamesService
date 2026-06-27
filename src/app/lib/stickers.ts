@@ -20,13 +20,16 @@ export interface Album {
 }
 
 const RAW: { id: string; title: string; icon: string; special?: boolean; emojis: string[] }[] = [
-  { id: 'animals', title: '동물 친구들', icon: '🐾', emojis: ['🐶', '🐱', '🐰', '🦁', '🐼', '🦊'] },
-  { id: 'snacks', title: '맛있는 간식', icon: '🍓', emojis: ['🍎', '🍌', '🍓', '🍪', '🍰', '🍦'] },
-  { id: 'sea', title: '바다 친구들', icon: '🌊', emojis: ['🐠', '🐙', '🦀', '🐳', '🐢', '🦈'] },
-  { id: 'space', title: '우주 탐험', icon: '🚀', emojis: ['🚀', '🪐', '🌟', '🌙', '☄️', '🧑‍🚀'] },
-  { id: 'dino', title: '공룡 나라', icon: '🦕', emojis: ['🦖', '🦕', '🥚', '🌋', '🦴', '🌴'] },
-  { id: 'nature', title: '자연과 날씨', icon: '🌈', emojis: ['🌈', '☀️', '🌸', '🍀', '🦋', '🌻'] },
-  { id: 'shiny', title: '반짝이', icon: '✨', special: true, emojis: ['👑', '💎', '🦄', '🏆', '🎖️', '⭐'] },
+  { id: 'animals', title: '동물 친구들', icon: '🐾', emojis: ['🐶', '🐱', '🐰', '🦁', '🐼', '🦊', '🐻', '🐨', '🐯', '🐮', '🐷', '🐸'] },
+  { id: 'snacks', title: '맛있는 간식', icon: '🍓', emojis: ['🍎', '🍌', '🍓', '🍪', '🍰', '🍦', '🍩', '🍫', '🧁', '🍭', '🍉', '🍇'] },
+  { id: 'sea', title: '바다 친구들', icon: '🌊', emojis: ['🐠', '🐙', '🦀', '🐳', '🐢', '🦈', '🐬', '🐟', '🦑', '🦞', '🐚', '🐧'] },
+  { id: 'space', title: '우주 탐험', icon: '🚀', emojis: ['🚀', '🪐', '🌟', '🌙', '☄️', '🧑‍🚀', '🛸', '🌍', '🌠', '🔭', '👽', '🌌'] },
+  { id: 'dino', title: '공룡 나라', icon: '🦕', emojis: ['🦖', '🦕', '🥚', '🌋', '🦴', '🌴', '🐊', '🦎', '🐲', '🍃', '🌿', '🐉'] },
+  { id: 'nature', title: '자연과 날씨', icon: '🌈', emojis: ['🌈', '☀️', '🌸', '🍀', '🦋', '🌻', '🌷', '🌺', '🌳', '⛅', '❄️', '🍁'] },
+  { id: 'vehicles', title: '신나는 탈것', icon: '🚗', emojis: ['🚗', '🚌', '🚓', '🚒', '🚑', '🚜', '🚲', '🛵', '🚂', '✈️', '🚁', '⛵'] },
+  { id: 'sports', title: '즐거운 운동', icon: '⚽', emojis: ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏓', '🏸', '🥎', '🎳', '⛳', '🥏'] },
+  { id: 'music', title: '신나는 음악', icon: '🎵', emojis: ['🎵', '🎸', '🥁', '🎹', '🎺', '🎻', '🎷', '🪕', '🎤', '🎧', '📻', '🎶'] },
+  { id: 'shiny', title: '반짝이', icon: '✨', special: true, emojis: ['👑', '💎', '🦄', '🏆', '🎖️', '⭐', '🥇', '🪄', '💍', '🎀', '🔮', '✨'] },
 ];
 
 export const ALBUMS: Album[] = RAW.map((a) => ({
@@ -77,9 +80,10 @@ export interface AwardedSticker extends Sticker {
 }
 
 /**
- * Award stickers for a cleared game: `stars` normal stickers (new preferred),
- * plus one shiny sticker when stars === 3. Returns what was awarded so the
- * result screen can show it off.
+ * Award stickers for a cleared game: just one normal sticker per clear
+ * (new preferred), plus one bonus shiny sticker on a 3-star clear. Keeping it
+ * to one-per-clear makes building the collection a slower, more rewarding goal.
+ * Returns what was awarded so the result screen can show it off.
  */
 export function awardStickers(player: string, stars: number): AwardedSticker[] {
   const data = loadAll();
@@ -94,8 +98,8 @@ export function awardStickers(player: string, stars: number): AwardedSticker[] {
     owned[s.id] = (owned[s.id] ?? 0) + 1;
   };
 
-  for (let i = 0; i < stars; i++) give(ALL_NORMAL);
-  if (stars >= 3) give(ALL_SPECIAL);
+  give(ALL_NORMAL); // one sticker per clear, regardless of how many stars
+  if (stars >= 3) give(ALL_SPECIAL); // bonus shiny only for a perfect clear
 
   data[player] = owned;
   saveAll(data);

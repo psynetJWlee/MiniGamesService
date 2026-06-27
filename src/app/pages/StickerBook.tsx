@@ -38,9 +38,9 @@ export default function StickerBook() {
     <GameShell
       title={`${player}의 스티커`}
       status={status}
-      contentClassName="relative z-10 px-4 pt-28 pb-10 max-w-4xl mx-auto"
+      contentClassName="relative z-10 h-[100dvh] overflow-y-auto"
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 px-4 pt-28 pb-10 max-w-4xl mx-auto">
         {ALBUMS.map((album) => {
           const got = album.stickers.filter((s) => owned[s.id]).length;
           const complete = got === album.stickers.length;
@@ -91,11 +91,11 @@ export default function StickerBook() {
             </div>
           );
         })}
-      </div>
 
-      <p className="text-center font-body text-gray-400 mt-8 text-lg">
-        게임을 클리어하면 별 개수만큼 스티커를 받아요! ⭐ 3개면 반짝이 스티커도! ✨
-      </p>
+        <p className="text-center font-body text-gray-400 mt-2 text-lg">
+          게임을 클리어하면 스티커를 하나 받아요! ⭐ 별 3개로 깰 때만 반짝이 스티커도! ✨
+        </p>
+      </div>
     </GameShell>
   );
 }
