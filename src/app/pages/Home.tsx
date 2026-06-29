@@ -159,6 +159,61 @@ const GAMES = [
   },
 ];
 
+// Games grouped by the skill each one helps grow, so parents can pick by
+// purpose ("수리력", "추리력"…). Each game belongs to exactly one category;
+// the order here is the order shown on the home screen.
+interface Category {
+  id: string;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  badge: string; // tailwind classes for the emoji badge
+  ids: string[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    id: 'number',
+    emoji: '🔢',
+    title: '수리·계산력',
+    subtitle: '수와 계산이 쑥쑥 자라요',
+    badge: 'bg-orange-100 text-orange-500',
+    ids: ['math', 'shopping', 'clock', 'compare', 'balloons'],
+  },
+  {
+    id: 'logic',
+    emoji: '🧩',
+    title: '사고·추리력',
+    subtitle: '생각하는 힘을 길러요',
+    badge: 'bg-violet-100 text-violet-500',
+    ids: ['pattern', 'maze', 'puzzle'],
+  },
+  {
+    id: 'observe',
+    emoji: '👀',
+    title: '관찰·기억력',
+    subtitle: '집중해서 찾고 기억해요',
+    badge: 'bg-sky-100 text-sky-500',
+    ids: ['matching', 'hidden', 'monsters', 'sounds'],
+  },
+  {
+    id: 'language',
+    emoji: '🗣️',
+    title: '언어·상식',
+    subtitle: '새로운 것을 배워요',
+    badge: 'bg-emerald-100 text-emerald-500',
+    ids: ['hangul', 'flags'],
+  },
+  {
+    id: 'play',
+    emoji: '🤗',
+    title: '교감·생활 놀이',
+    subtitle: '손과 마음이 함께 자라요',
+    badge: 'bg-pink-100 text-pink-500',
+    ids: ['feeding', 'hospital', 'dino'],
+  },
+];
+
 export default function Home() {
   const navigate = useNavigate();
   const { player, setPlayer } = usePlayer();
@@ -173,10 +228,10 @@ export default function Home() {
     window.location.reload();
   };
 
-  // Mastered (3-star) games sink to the bottom so the ones still to clear stay
-  // on top. sort() is stable, so each group keeps its original order.
-  const games = GAMES.map((g) => ({ ...g, stars: getGameRecord(g.id as GameId).stars })).sort(
-    (a, b) => (a.stars >= 3 ? 1 : 0) - (b.stars >= 3 ? 1 : 0),
+  // Look up each game by id (with its best stars) so categories can pull the
+  // games they list, in order.
+  const byId = Object.fromEntries(
+    GAMES.map((g) => [g.id, { ...g, stars: getGameRecord(g.id as GameId).stars }]),
   );
 
   return (
@@ -226,25 +281,51 @@ export default function Home() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-        {games.map((game, index) => (
-          <motion.div
-            key={game.id}
-            layout
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <GameCard
-              {...game}
-              stars={game.stars}
-              onClick={() => {
-                navigate(`/game/${game.id}`);
-              }}
-            />
-          </motion.div>
-        ))}
-      </div>
+      {CATEGORIES.map((cat) => {
+        // Mastered (3-star) games sink to the bottom within their category so
+        // the ones still to clear stay on top. sort() is stable.
+        const catGames = cat.ids
+          .map((id) => byId[id])
+          .filter(Boolean)
+          .sort((a, b) => (a.stars >= 3 ? 1 : 0) - (b.stars >= 3 ? 1 : 0));
+        if (!catGames.length) return null;
+        return (
+          <section key={cat.id} className="mb-14">
+            <div className="flex items-center gap-4 mb-6">
+              <span
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm shrink-0 ${cat.badge}`}
+              >
+                {cat.emoji}
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-2xl md:text-3xl font-title text-gray-700">{cat.title}</h3>
+                <p className="font-body text-gray-500">{cat.subtitle}</p>
+              </div>
+              <span className="ml-auto font-title text-gray-300 text-lg shrink-0">{catGames.length}개</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
+              {catGames.map((game, index) => (
+                <motion.div
+                  key={game.id}
+                  layout
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <GameCard
+                    {...game}
+                    stars={game.stars}
+                    onClick={() => {
+                      navigate(`/game/${game.id}`);
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
       {/* Small, faint reset for parents — wipes all stars and stickers. */}
       <div className="mt-12 mb-4 text-center">
