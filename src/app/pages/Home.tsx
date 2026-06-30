@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { Plus, X } from 'lucide-react';
 import { GameCard } from '../components/GameCard';
+import { AddPlayerModal } from '../components/AddPlayerModal';
 import { useNavigate } from 'react-router';
 import { getGameRecord, getTotalStars, resetProgress, type GameId } from '../lib/storage';
 import { resetStickers } from '../lib/stickers';
-import { usePlayer, PLAYERS } from '../lib/player';
-import gaonPhoto from '../../assets/players/gaon-1.jpg';
-import sionPhoto from '../../assets/players/sion-1.jpg';
-
-const PLAYER_PHOTOS: Record<string, string> = {
-  가온이: gaonPhoto,
-  시온이: sionPhoto,
-};
+import { usePlayer } from '../lib/player';
 
 // Inline SVG thumbnail (no external image needed, never breaks).
 const thumb = (text: string, bg: string) =>
@@ -216,8 +211,9 @@ const CATEGORIES: Category[] = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { player, setPlayer } = usePlayer();
+  const { player, players, setPlayer, addPlayer, removePlayer } = usePlayer();
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [adding, setAdding] = useState(false);
   // Read once per mount — the home screen is re-mounted when returning from a game.
   const totalStars = getTotalStars();
 
@@ -250,29 +246,58 @@ export default function Home() {
           {player ? `${player}랑 재미있게 놀아보아요!` : '친구를 골라봐!'}
         </p>
 
-        {/* Player picker — selecting a name personalizes the whole app. */}
-        <div className="flex justify-center gap-4 mb-5">
-          {PLAYERS.map((name) => {
-            const selected = player === name;
+        {/* Player picker — selecting a name personalizes the whole app.
+            Families can add their own players with the "추가" button. */}
+        <div className="flex flex-wrap justify-center gap-4 mb-5">
+          {players.map((p) => {
+            const selected = player === p.name;
             return (
-              <button
-                key={name}
-                onClick={() => setPlayer(name)}
-                className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full font-title text-2xl shadow-md border-4 transition-all active:scale-95 ${
-                  selected
-                    ? 'bg-orange-400 text-white border-orange-400 scale-105'
-                    : 'bg-white text-orange-500 border-orange-200 hover:scale-105'
-                }`}
-              >
-                <img
-                  src={PLAYER_PHOTOS[name]}
-                  alt={name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                />
-                {name}
-              </button>
+              <div key={p.name} className="relative">
+                <button
+                  onClick={() => setPlayer(p.name)}
+                  className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full font-title text-2xl shadow-md border-4 transition-all active:scale-95 ${
+                    selected
+                      ? 'bg-orange-400 text-white border-orange-400 scale-105'
+                      : 'bg-white text-orange-500 border-orange-200 hover:scale-105'
+                  }`}
+                >
+                  {p.photo ? (
+                    <img
+                      src={p.photo}
+                      alt={p.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                    />
+                  ) : (
+                    <span className="w-12 h-12 rounded-full bg-orange-100 border-2 border-white shadow-sm flex items-center justify-center text-2xl">
+                      🙂
+                    </span>
+                  )}
+                  {p.name}
+                </button>
+                {!p.builtin && (
+                  <button
+                    onClick={() => removePlayer(p.name)}
+                    aria-label={`${p.name} 삭제`}
+                    className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-red-400 hover:bg-red-500 text-white flex items-center justify-center shadow-md border-2 border-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
             );
           })}
+
+          {/* Add a custom player */}
+          <button
+            onClick={() => setAdding(true)}
+            aria-label="새 친구 추가"
+            className="flex items-center gap-2 pl-2 pr-6 py-2 rounded-full font-title text-2xl shadow-md border-4 border-dashed border-orange-200 bg-white/70 text-orange-400 hover:scale-105 hover:border-orange-300 active:scale-95 transition-all"
+          >
+            <span className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+              <Plus size={26} />
+            </span>
+            추가
+          </button>
         </div>
 
         <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full shadow-md border-2 border-yellow-200">
@@ -348,6 +373,17 @@ export default function Home() {
           </button>
         )}
       </div>
+
+      {adding && (
+        <AddPlayerModal
+          existingNames={players.map((p) => p.name)}
+          onClose={() => setAdding(false)}
+          onAdd={(name, photo) => {
+            addPlayer(name, photo);
+            setAdding(false);
+          }}
+        />
+      )}
     </div>
   );
 }
