@@ -59,8 +59,10 @@ interface Monster {
   color: string;
   key: string;
   image: string | null;
-  x: number;
+  x: number; // rest position, px from the top-left of the play area
   y: number;
+  fx: number; // small float offset (px) — stays inside the monster's own grid cell
+  fy: number;
   delay: number;
 }
 
@@ -81,20 +83,56 @@ const LEVELS: Level[] = [
 
 let monsterSeq = 0;
 
+// Lay the monsters out on a jittered grid so each one sits in its own cell.
+// Positions are in px (relative to the play area / viewport) and the float stays
+// inside the cell, so monsters never overlap — at rest or while moving.
 function buildWave(target: ColorDef, level: Level): Monster[] {
   const pool = PALETTE.slice(0, level.colors);
+  // Guard against a not-yet-laid-out window (innerWidth/Height can momentarily be
+  // 0) so positions never come out NaN/off-screen.
+  const W = Math.max(320, (typeof window !== 'undefined' && window.innerWidth) || 1024);
+  const H = Math.max(480, (typeof window !== 'undefined' && window.innerHeight) || 768);
+
+  const monPx = W >= 768 ? 112 : W >= 640 ? 96 : 80; // must match the CSS sizes below
+  const gap = monPx * 0.4;
+  const step = monPx + gap;
+  const marginX = Math.max(10, W * 0.03);
+  const bannerTop = Math.max(140, H * 0.16); // keep clear of the target banner up top
+  const bottom = H * 0.04;
+
+  const usableW = W - marginX * 2;
+  const cols = Math.max(1, Math.min(level.count, Math.floor(usableW / step)));
+  const rows = Math.ceil(level.count / cols);
+  const gridW = cols * step;
+  const gridH = rows * step;
+  const gridLeft = (W - gridW) / 2;
+  const gridTop = bannerTop + Math.max(0, (H - bannerTop - bottom - gridH) / 2);
+
+  const jitter = gap * 0.1;
+  const fAmp = gap * 0.38;
+  const rnd = (m: number) => (Math.random() * 2 - 1) * m;
+
+  // Distinct cell per monster; shuffle afterwards so the target-colored ones
+  // (the first two) aren't always in the same corner.
+  const cells = shuffle(Array.from({ length: cols * rows }, (_, i) => i)).slice(0, level.count);
   return shuffle(
-    Array.from({ length: level.count }).map((_, i) => {
+    cells.map((cell, i) => {
       const c = i < 2 ? target : pool[Math.floor(Math.random() * pool.length)];
+      const cx = cell % cols;
+      const cy = Math.floor(cell / cols);
+      const x = gridLeft + cx * step + (step - monPx) / 2 + rnd(jitter);
+      const y = gridTop + cy * step + (step - monPx) / 2 + rnd(jitter);
       return {
         id: ++monsterSeq,
         name: c.name,
         color: c.color,
         key: c.key,
         image: imageForColor(c.key),
-        x: Math.random() * 78 + 8,
-        y: Math.random() * 60 + 16,
-        delay: Math.random() * 1.5,
+        x,
+        y,
+        fx: (Math.random() < 0.5 ? 1 : -1) * fAmp * (0.5 + Math.random() * 0.5),
+        fy: (Math.random() < 0.5 ? 1 : -1) * fAmp * (0.5 + Math.random() * 0.5),
+        delay: Math.random() * 1.2,
       };
     }),
   );
@@ -145,7 +183,10 @@ export default function MonsterGame() {
     }
 
     playPop();
-    burstSmall({ x: monster.x / 100, y: monster.y / 100 });
+    burstSmall({
+      x: (monster.x + 40) / (typeof window !== 'undefined' ? window.innerWidth : 1024),
+      y: (monster.y + 40) / (typeof window !== 'undefined' ? window.innerHeight : 768),
+    });
     const newScore = score + 1;
     setScore(newScore);
 
@@ -208,19 +249,25 @@ export default function MonsterGame() {
       {monsters.map((monster) => (
         <motion.button
           key={monster.id}
-          initial={{ scale: 0, x: `${monster.x}vw`, y: `${monster.y}vh` }}
+          initial={{ scale: 0, x: monster.x, y: monster.y }}
           animate={{
             scale: 1,
-            x: [`${monster.x}vw`, `${(monster.x + 8) % 88}vw`, `${monster.x}vw`],
-            y: [`${monster.y}vh`, `${(monster.y + 8) % 75}vh`, `${monster.y}vh`],
+            x: [monster.x, monster.x + monster.fx, monster.x],
+            y: [monster.y, monster.y + monster.fy, monster.y],
           }}
-          transition={{ duration: config.duration, repeat: Infinity, delay: monster.delay, ease: 'easeInOut' }}
+          transition={{
+            duration: config.duration,
+            repeat: Infinity,
+            repeatDelay: 0.5, // pause ~0.5s at rest each cycle so it's easy to tap
+            delay: monster.delay,
+            ease: 'easeInOut',
+          }}
           onClick={() => handleCatch(monster)}
           className="absolute left-0 top-0"
         >
           {monster.image ? (
             /* Custom monster art — the colored halo keeps color the gameplay cue. */
-            <div className="relative w-24 h-24 md:w-28 md:h-28 flex items-center justify-center">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
               <span
                 className="absolute inset-0 rounded-full opacity-40 blur-md"
                 style={{ backgroundColor: monster.color }}
@@ -235,7 +282,7 @@ export default function MonsterGame() {
           ) : (
             /* Default cute colored blob monster — the color IS the gameplay cue. */
             <div
-              className="w-24 h-24 md:w-28 md:h-28 rounded-[44%] relative flex items-center justify-center shadow-[0_0_25px_rgba(255,255,255,0.35)]"
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-[44%] relative flex items-center justify-center shadow-[0_0_25px_rgba(255,255,255,0.35)]"
               style={{ backgroundColor: monster.color }}
             >
               <div className="flex gap-3 mb-2">
