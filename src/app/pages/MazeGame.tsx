@@ -265,7 +265,11 @@ export default function MazeGame() {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square w-[min(100%,calc(100dvh-16rem))] landscape:w-[min(58vw,calc(100dvh-8rem))] shrink-0 grid border-8 border-yellow-100 touch-none cursor-pointer select-none"
-        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gap: gapPx }}
+        style={{
+          gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${n}, minmax(0, 1fr))`,
+          gap: gapPx,
+        }}
       >
         {maze.grid.map((row, y) =>
           row.map((cell, x) => {
