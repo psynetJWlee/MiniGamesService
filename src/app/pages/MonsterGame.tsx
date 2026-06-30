@@ -13,21 +13,52 @@ import { useGameProgress } from '../lib/useGameProgress';
 interface ColorDef {
   name: string;
   color: string;
+  key: string; // english key used to match a custom image file
 }
 
 const PALETTE: ColorDef[] = [
-  { name: '빨강', color: '#ef4444' },
-  { name: '파랑', color: '#3b82f6' },
-  { name: '노랑', color: '#eab308' },
-  { name: '초록', color: '#22c55e' },
-  { name: '보라', color: '#a855f7' },
-  { name: '주황', color: '#f97316' },
+  { name: '빨강', color: '#ef4444', key: 'red' },
+  { name: '파랑', color: '#3b82f6', key: 'blue' },
+  { name: '노랑', color: '#eab308', key: 'yellow' },
+  { name: '초록', color: '#22c55e', key: 'green' },
+  { name: '보라', color: '#a855f7', key: 'purple' },
+  { name: '주황', color: '#f97316', key: 'orange' },
 ];
+
+// Optional custom monster art: drop images into src/assets/monsters/ named by
+// color — e.g. red.png, blue-1.png, 초록.webp. They're auto-discovered and shown
+// instead of the default colored blob. A color with no image falls back to the
+// blob, so the game always works (even with an empty folder).
+const monsterFiles = import.meta.glob(
+  '../../assets/monsters/*.{png,jpg,jpeg,webp,svg,gif,PNG,JPG,JPEG,WEBP,SVG,GIF}',
+  { eager: true, query: '?url', import: 'default' },
+);
+const COLOR_KEY_ALIASES: Record<string, string> = {
+  red: 'red', 빨강: 'red', 빨간: 'red',
+  blue: 'blue', 파랑: 'blue', 파란: 'blue',
+  yellow: 'yellow', 노랑: 'yellow', 노란: 'yellow',
+  green: 'green', 초록: 'green', 초록색: 'green',
+  purple: 'purple', 보라: 'purple', 보라색: 'purple',
+  orange: 'orange', 주황: 'orange', 주황색: 'orange',
+};
+const MONSTER_IMAGES: Record<string, string[]> = {};
+for (const [path, url] of Object.entries(monsterFiles)) {
+  const base = (path.split('/').pop() ?? '').replace(/\.[^.]+$/, '');
+  const token = base.split(/[-_ ]/)[0].toLowerCase();
+  const key = COLOR_KEY_ALIASES[token];
+  if (key) (MONSTER_IMAGES[key] ??= []).push(url as string);
+}
+function imageForColor(key: string): string | null {
+  const list = MONSTER_IMAGES[key];
+  return list && list.length ? list[Math.floor(Math.random() * list.length)] : null;
+}
 
 interface Monster {
   id: number;
   name: string;
   color: string;
+  key: string;
+  image: string | null;
   x: number;
   y: number;
   delay: number;
@@ -59,6 +90,8 @@ function buildWave(target: ColorDef, level: Level): Monster[] {
         id: ++monsterSeq,
         name: c.name,
         color: c.color,
+        key: c.key,
+        image: imageForColor(c.key),
         x: Math.random() * 78 + 8,
         y: Math.random() * 60 + 16,
         delay: Math.random() * 1.5,
@@ -185,20 +218,36 @@ export default function MonsterGame() {
           onClick={() => handleCatch(monster)}
           className="absolute left-0 top-0"
         >
-          {/* Cute colored blob monster — the color IS the gameplay cue. */}
-          <div
-            className="w-24 h-24 md:w-28 md:h-28 rounded-[44%] relative flex items-center justify-center shadow-[0_0_25px_rgba(255,255,255,0.35)]"
-            style={{ backgroundColor: monster.color }}
-          >
-            <div className="flex gap-3 mb-2">
-              {[0, 1].map((e) => (
-                <span key={e} className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                  <span className="w-2 h-2 bg-gray-900 rounded-full" />
-                </span>
-              ))}
+          {monster.image ? (
+            /* Custom monster art — the colored halo keeps color the gameplay cue. */
+            <div className="relative w-24 h-24 md:w-28 md:h-28 flex items-center justify-center">
+              <span
+                className="absolute inset-0 rounded-full opacity-40 blur-md"
+                style={{ backgroundColor: monster.color }}
+              />
+              <img
+                src={monster.image}
+                alt={`${monster.name} 몬스터`}
+                draggable={false}
+                className="relative w-full h-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.55)] select-none"
+              />
             </div>
-            <span className="absolute bottom-4 w-5 h-2.5 border-b-4 border-white/80 rounded-b-full" />
-          </div>
+          ) : (
+            /* Default cute colored blob monster — the color IS the gameplay cue. */
+            <div
+              className="w-24 h-24 md:w-28 md:h-28 rounded-[44%] relative flex items-center justify-center shadow-[0_0_25px_rgba(255,255,255,0.35)]"
+              style={{ backgroundColor: monster.color }}
+            >
+              <div className="flex gap-3 mb-2">
+                {[0, 1].map((e) => (
+                  <span key={e} className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                    <span className="w-2 h-2 bg-gray-900 rounded-full" />
+                  </span>
+                ))}
+              </div>
+              <span className="absolute bottom-4 w-5 h-2.5 border-b-4 border-white/80 rounded-b-full" />
+            </div>
+          )}
         </motion.button>
       ))}
 
