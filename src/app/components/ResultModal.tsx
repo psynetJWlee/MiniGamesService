@@ -15,8 +15,10 @@ interface ResultModalProps {
   title?: string;
   /** Smaller line under the title. */
   subtitle?: string;
-  /** Whether a harder level remains — shows the "다음 단계" button. */
+  /** Whether to show the top action button (defaults to the "다음 단계" flow). */
   hasNextLevel: boolean;
+  /** Label for that top action button. Defaults to "다음 단계". */
+  nextLabel?: string;
   onNext: () => void;
   onRetry: () => void;
   onHome: () => void;
@@ -33,6 +35,7 @@ export function ResultModal({
   title = '참 잘했어요!',
   subtitle,
   hasNextLevel,
+  nextLabel = '다음 단계',
   onNext,
   onRetry,
   onHome,
@@ -112,7 +115,7 @@ export function ResultModal({
                   className="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-5 rounded-3xl font-title text-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"
                 >
                   <ArrowRight size={28} />
-                  다음 단계
+                  {nextLabel}
                 </button>
               )}
               <button

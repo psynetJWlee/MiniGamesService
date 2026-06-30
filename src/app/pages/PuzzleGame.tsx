@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDrag, useDrop, useDragLayer, DndProvider } from 'react-dnd';
 import { TouchBackend } from 'react-dnd-touch-backend';
 import { useNavigate } from 'react-router';
+import { ArrowRight } from 'lucide-react';
 import { GameShell } from '../components/GameShell';
 import { ResultModal } from '../components/ResultModal';
 import { shuffle } from '../lib/shuffle';
@@ -33,6 +34,13 @@ const LEVELS: Level[] = [
   { label: '5×5', n: 5, stars: { three: 0, two: 6 } },
   { label: '6×6', n: 6, stars: { three: 0, two: 8 } },
   { label: '7×7', n: 7, stars: { three: 1, two: 10 } },
+];
+
+// Player-facing difficulty options, matched 1:1 with LEVELS above.
+const DIFFICULTIES = [
+  { name: '쉬움', emoji: '🐤', color: 'bg-green-400 hover:bg-green-500' },
+  { name: '보통', emoji: '🐰', color: 'bg-yellow-400 hover:bg-yellow-500' },
+  { name: '어려움', emoji: '🦁', color: 'bg-rose-400 hover:bg-rose-500' },
 ];
 
 const ItemTypes = { PIECE: 'piece' };
@@ -129,14 +137,18 @@ function PuzzleDragLayer() {
 export default function PuzzleGame() {
   const navigate = useNavigate();
   const wrong = useWrongFeedback();
-  const { level, setLevel, submitResult } = useGameProgress('puzzle');
-  const levelIndex = Math.min(level, LEVELS.length - 1);
-  const config = LEVELS[levelIndex];
+  const { submitResult } = useGameProgress('puzzle');
+
+  // Difficulty is chosen by the player at the start of each game (no auto
+  // progression). null shows the difficulty picker first.
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const lv = selectedLevel ?? 0;
+  const config = LEVELS[lv];
   const n = config.n;
 
   const [image, setImage] = useState(() => IMAGES[Math.floor(Math.random() * IMAGES.length)]);
   const [placed, setPlaced] = useState<Set<string>>(new Set());
-  const [order, setOrder] = useState<{ r: number; c: number }[]>(() => buildOrder(n));
+  const [order, setOrder] = useState<{ r: number; c: number }[]>([]);
   const [wrongDrops, setWrongDrops] = useState(0);
   const [cleared, setCleared] = useState(false);
   const [earnedStars, setEarnedStars] = useState(0);
@@ -145,10 +157,12 @@ export default function PuzzleGame() {
     return IMAGES[Math.floor(Math.random() * IMAGES.length)];
   }
 
-  const startRound = (cfg: Level, newImage = true) => {
+  // Start (or restart) a round at the given difficulty.
+  const startLevel = (idx: number, newImage = true) => {
     if (newImage) setImage(makeImageChoice());
+    setSelectedLevel(idx);
     setPlaced(new Set());
-    setOrder(buildOrder(cfg.n));
+    setOrder(buildOrder(LEVELS[idx].n));
     setWrongDrops(0);
     setCleared(false);
   };
@@ -163,19 +177,13 @@ export default function PuzzleGame() {
       if (next.size === n * n) {
         const stars = starsForLower(wrongDrops, config.stars);
         setEarnedStars(stars);
-        submitResult({ stars, level: levelIndex });
+        submitResult({ stars, level: lv });
         setTimeout(() => setCleared(true), 600);
       }
     } else {
       setWrongDrops((w) => w + 1);
       wrong.trigger();
     }
-  };
-
-  const goNextLevel = () => {
-    const next = Math.min(levelIndex + 1, LEVELS.length - 1);
-    setLevel(next);
-    startRound(LEVELS[next]);
   };
 
   // Tray pieces = not-yet-placed, in their shuffled order.
@@ -197,14 +205,49 @@ export default function PuzzleGame() {
     </div>
   );
 
+  // Difficulty picker — shown when entering the game, before a round starts.
+  if (selectedLevel == null) {
+    return (
+      <GameShell
+        title="직소 퍼즐"
+        contentClassName="relative z-10 h-[100dvh] px-4 pt-28 pb-6 max-w-md mx-auto flex flex-col justify-center"
+      >
+        <h3 className="text-3xl md:text-4xl font-title text-orange-600 mb-2 text-center">
+          퍼즐 난이도를 골라봐!
+        </h3>
+        <p className="text-lg font-body text-gray-500 mb-8 text-center">조각이 많을수록 어려워요</p>
+        <div className="flex flex-col gap-4">
+          {LEVELS.map((lvl, i) => {
+            const d = DIFFICULTIES[i];
+            return (
+              <button
+                key={i}
+                onClick={() => startLevel(i)}
+                className={`flex items-center gap-4 px-6 py-5 rounded-3xl shadow-lg text-white active:scale-95 transition-all ${d.color}`}
+              >
+                <span className="text-4xl">{d.emoji}</span>
+                <span className="flex-1 text-left">
+                  <span className="block text-2xl font-title">{d.name}</span>
+                  <span className="block text-base font-body opacity-90">
+                    {lvl.n}×{lvl.n} · 조각 {lvl.n * lvl.n}개
+                  </span>
+                </span>
+                <ArrowRight size={28} />
+              </button>
+            );
+          })}
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
       <GameShell
-        title="직소 퍼즐"
-        levelIndex={levelIndex}
-        levelCount={LEVELS.length}
+        title={`직소 퍼즐 · ${config.label}`}
         status={status}
-        onReset={() => startRound(config, false)}
+        onBack={() => setSelectedLevel(null)}
+        onReset={() => startLevel(lv, false)}
         contentClassName="relative z-10 px-4 pt-24 pb-4 max-w-2xl landscape:max-w-6xl mx-auto"
       >
         <PuzzleDragLayer />
@@ -243,9 +286,10 @@ export default function PuzzleGame() {
           stars={earnedStars}
           title="퍼즐 완성!"
           subtitle={`멋진 그림을 완성했어요! (틀린 횟수 ${wrongDrops})`}
-          hasNextLevel={levelIndex < LEVELS.length - 1}
-          onNext={goNextLevel}
-          onRetry={() => startRound(config, false)}
+          hasNextLevel
+          nextLabel="난이도 다시 고르기"
+          onNext={() => setSelectedLevel(null)}
+          onRetry={() => startLevel(lv, false)}
           onHome={() => navigate('/')}
         />
       </GameShell>
