@@ -22,7 +22,7 @@ function getCtx(): AudioContext | null {
   return ctx;
 }
 
-function tone(freq: number, startOffset: number, duration: number, type: OscillatorType = 'sine') {
+function tone(freq: number, startOffset: number, duration: number, type: OscillatorType = 'sine', peak = 0.2) {
   const audio = getCtx();
   if (!audio) return;
   const osc = audio.createOscillator();
@@ -34,7 +34,7 @@ function tone(freq: number, startOffset: number, duration: number, type: Oscilla
 
   // Soft attack/decay so it sounds gentle rather than clicky.
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(0.2, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 
   osc.connect(gain).connect(audio.destination);
@@ -56,6 +56,11 @@ export function playWrong() {
 /** Quick bright "pop" — for catching/popping things. */
 export function playPop() {
   tone(880, 0, 0.08); // A5
+}
+
+/** Soft short "tap" for each step taken (e.g. moving through a maze). */
+export function playStep() {
+  tone(300, 0, 0.05, 'triangle', 0.1); // low, gentle, quiet — fine to repeat rapidly
 }
 
 /** Rising three-note flourish when a level is cleared / advanced. */

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { GameShell } from '../components/GameShell';
 import { ResultModal } from '../components/ResultModal';
 import { shuffle } from '../lib/shuffle';
-import { playCorrect } from '../lib/sound';
+import { playCorrect, playStep } from '../lib/sound';
 import { burstBig } from '../lib/celebrate';
 import { starsForLower } from '../lib/scoring';
 import { useGameProgress } from '../lib/useGameProgress';
@@ -15,10 +15,12 @@ interface Level {
   size: number; // odd
 }
 
+// Mazes are ~3× larger than before so the path-finding actually challenges
+// kids (the old 5/7/9 grids were too easy).
 const LEVELS: Level[] = [
-  { label: '쉬워요', size: 5 },
-  { label: '보통이에요', size: 7 },
-  { label: '어려워요', size: 9 },
+  { label: '쉬워요', size: 15 },
+  { label: '보통이에요', size: 21 },
+  { label: '어려워요', size: 27 },
 ];
 
 type Grid = number[][]; // 0 path, 1 wall, 2 goal
@@ -136,10 +138,17 @@ export default function MazeGame() {
       wonRef.current = true;
       playCorrect();
       burstBig();
-      const stars = starsForLower(newMoves, { three: maze.optimal + 2, two: maze.optimal + 8 });
+      // Tolerance scales with the maze: bigger mazes mean more wandering, so the
+      // 3-/2-star cutoffs grow with the optimal path length.
+      const stars = starsForLower(newMoves, {
+        three: Math.round(maze.optimal * 1.25),
+        two: Math.round(maze.optimal * 1.8),
+      });
       setEarnedStars(stars);
       submitResult({ stars, level: levelIndex });
       setTimeout(() => setCleared(true), 700);
+    } else {
+      playStep(); // gentle footstep on each ordinary step
     }
   };
 
@@ -166,6 +175,24 @@ export default function MazeGame() {
   // corridors, one step at a time. Direction buttons still work too.
   const boardRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+
+  // Larger mazes mean smaller cells, so size the runner/cookie emojis (and the
+  // gap between cells) to the live cell width instead of a fixed text size.
+  const gapPx = n <= 9 ? 6 : n <= 17 ? 3 : 2;
+  const [cellPx, setCellPx] = useState(0);
+  useEffect(() => {
+    const el = boardRef.current;
+    if (!el) return;
+    const update = () => {
+      const content = el.clientWidth - 24; // minus the p-3 padding (12px each side)
+      setCellPx(Math.max(0, (content - gapPx * (n - 1)) / n));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [n, gapPx]);
+  const emojiPx = Math.max(7, Math.round(cellPx * 0.72));
 
   const cellFromPointer = (clientX: number, clientY: number) => {
     const el = boardRef.current;
@@ -237,8 +264,8 @@ export default function MazeGame() {
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square w-[min(100%,calc(100dvh-16rem))] landscape:w-[min(58vw,calc(100dvh-8rem))] shrink-0 grid gap-1.5 border-8 border-yellow-100 touch-none cursor-pointer select-none"
-        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
+        className="bg-white p-3 rounded-[40px] shadow-2xl aspect-square w-[min(100%,calc(100dvh-16rem))] landscape:w-[min(58vw,calc(100dvh-8rem))] shrink-0 grid border-8 border-yellow-100 touch-none cursor-pointer select-none"
+        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gap: gapPx }}
       >
         {maze.grid.map((row, y) =>
           row.map((cell, x) => {
@@ -247,17 +274,29 @@ export default function MazeGame() {
             return (
               <div
                 key={`${x}-${y}`}
-                className={`rounded-lg flex items-center justify-center text-xl md:text-3xl ${
-                  cell === 1 ? 'bg-orange-200' : isTrail ? 'bg-yellow-100' : 'bg-orange-50'
-                }`}
+                className={`flex items-center justify-center leading-none ${
+                  n <= 9 ? 'rounded-lg' : n <= 17 ? 'rounded' : 'rounded-[2px]'
+                } ${cell === 1 ? 'bg-orange-200' : isTrail ? 'bg-yellow-100' : 'bg-orange-50'}`}
               >
                 {isPlayer && (
-                  <motion.span layoutId="player" className="filter drop-shadow-md">
+                  <motion.span
+                    layoutId="player"
+                    className="filter drop-shadow-md leading-none"
+                    style={{ fontSize: emojiPx }}
+                  >
                     🏃
                   </motion.span>
                 )}
-                {cell === 2 && !isPlayer && <span className="animate-bounce">🍪</span>}
-                {!isPlayer && cell !== 2 && isTrail && <span className="text-[10px] opacity-30">👣</span>}
+                {cell === 2 && !isPlayer && (
+                  <span className="animate-bounce leading-none" style={{ fontSize: emojiPx }}>
+                    🍪
+                  </span>
+                )}
+                {!isPlayer && cell !== 2 && isTrail && (
+                  <span className="opacity-30 leading-none" style={{ fontSize: Math.max(5, Math.round(emojiPx * 0.5)) }}>
+                    👣
+                  </span>
+                )}
               </div>
             );
           }),
