@@ -7,6 +7,7 @@ import MonsterGame from "./pages/MonsterGame";
 import SoundGame from "./pages/SoundGame";
 import MazeGame from "./pages/MazeGame";
 import HiddenGame from "./pages/HiddenGame";
+import HiddenSelect from "./pages/HiddenSelect";
 import DinoGame from "./pages/DinoGame";
 import HospitalGame from "./pages/HospitalGame";
 import MathGame from "./pages/MathGame";
@@ -54,7 +55,8 @@ export const router = createBrowserRouter(
   { path: "/game/monsters", element: <MonsterGame /> },
   { path: "/game/sounds", element: <SoundGame /> },
   { path: "/game/maze", element: <MazeGame /> },
-  { path: "/game/hidden", element: <HiddenGame /> },
+  { path: "/game/hidden", element: <HiddenSelect /> },
+  { path: "/game/hidden/:puzzleId", element: <HiddenGame /> },
   { path: "/game/dino", element: <DinoGame /> },
   { path: "/game/hospital", element: <HospitalGame /> },
   { path: "/game/math", element: <MathGame /> },

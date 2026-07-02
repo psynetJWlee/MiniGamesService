@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700">
+  <!-- PLACEHOLDER SCENE — replace with a real hidden-object illustration.
+       Six objects are drawn into the scene; their positions match targets in hiddenScenes.tsx. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfe6ff"/>
+      <stop offset="1" stop-color="#e8f7ff"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bff0b0"/>
+      <stop offset="1" stop-color="#8fd77a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="700" fill="url(#sky)"/>
+  <rect y="430" width="1000" height="270" fill="url(#grass)"/>
+
+  <!-- sun -->
+  <circle cx="880" cy="110" r="55" fill="#ffe08a"/>
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.9">
+    <ellipse cx="330" cy="120" rx="70" ry="34"/>
+    <ellipse cx="390" cy="110" rx="50" ry="28"/>
+  </g>
+  <!-- path -->
+  <path d="M120 700 Q300 520 480 700 Z" fill="#e9d8b5"/>
+  <!-- pond -->
+  <ellipse cx="300" cy="560" rx="120" ry="52" fill="#8fd0f0"/>
+  <!-- tree -->
+  <rect x="700" y="300" width="34" height="150" rx="10" fill="#a9754f"/>
+  <circle cx="717" cy="250" r="95" fill="#7cc26a"/>
+  <circle cx="660" cy="285" r="60" fill="#7cc26a"/>
+  <circle cx="775" cy="285" r="60" fill="#7cc26a"/>
+  <!-- house -->
+  <rect x="470" y="360" width="180" height="120" fill="#f6d6a8"/>
+  <polygon points="460,360 660,360 560,290" fill="#e08a6a"/>
+  <rect x="540" y="410" width="45" height="70" fill="#b9764a"/>
+
+  <!-- ===== hidden objects (subtle line art, blended into the scene) ===== -->
+  <!-- banana in the tree canopy (~0.72, 0.26) -->
+  <path d="M700 170 q34 20 44 -18" fill="none" stroke="#c9b24a" stroke-width="9" stroke-linecap="round"/>
+  <!-- star in the sky (~0.15, 0.17) -->
+  <path d="M150 100 l11 26 28 2 -21 19 7 28 -25 -15 -25 15 7 -28 -21 -19 28 -2 z" fill="none" stroke="#c9a24a" stroke-width="4"/>
+  <!-- fish in the pond (~0.30, 0.80) -->
+  <g stroke="#4a90b8" stroke-width="4" fill="none">
+    <path d="M270 560 q30 -22 60 0 q-30 22 -60 0 z"/>
+    <path d="M330 560 l20 -12 0 24 z"/>
+  </g>
+  <!-- key on the grass (~0.62, 0.86) -->
+  <g stroke="#b8952a" stroke-width="5" fill="none">
+    <circle cx="600" cy="600" r="12"/>
+    <path d="M612 600 h34 m-10 0 v10 m-8 -10 v8"/>
+  </g>
+  <!-- mitten on the house wall (~0.84, 0.61) -->
+  <path d="M835 415 q-16 0 -16 20 l0 24 q0 12 14 12 l18 0 q10 0 10 -12 l0 -18 q14 -2 14 -14 q0 -12 -14 -12 q-8 0 -12 8 z"
+        fill="none" stroke="#c56a8a" stroke-width="5"/>
+  <!-- pencil on the path (~0.20, 0.91) -->
+  <g stroke="#7a7a7a" stroke-width="4" fill="none">
+    <path d="M175 650 l44 -18 8 18 -44 18 z"/>
+    <path d="M175 650 l-14 8 14 8 z"/>
+  </g>
+</svg>
