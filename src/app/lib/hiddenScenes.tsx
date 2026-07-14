@@ -145,12 +145,12 @@ const DEFS: Def[] = [
   {
     id: 'repair',
     title: '골동품 비행선 수리소',
-    file: 'airship-shop.png',
+    file: 'airship-shop-v2.png',
     // Temporary spread positions — tune with ?edit.
     targets: [
       { id: 'gear', name: '톱니바퀴', icon: '⚙️', x: 0.638, y: 0.402, r: 0.05 },
       { id: 'magnifier', name: '돋보기', icon: '🔍', x: 0.13, y: 0.584, r: 0.05 },
-      { id: 'wingkey', name: '날개 열쇠', icon: '🔑', x: 0.813, y: 0.199, r: 0.05 },
+      { id: 'wingkey', name: '날개 열쇠', icon: '🔑', x: 0.813, y: 0.173, r: 0.05 },
       { id: 'compass', name: '나침반 병', icon: '🧭', x: 0.818, y: 0.582, r: 0.05 },
       { id: 'gembottle', name: '유리병 보석', icon: '💎', x: 0.524, y: 0.742, r: 0.05 },
       { id: 'map', name: '작은 지도', icon: '🗺️', x: 0.165, y: 0.56, r: 0.05 },
